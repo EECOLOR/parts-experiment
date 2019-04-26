@@ -1,0 +1,14 @@
+{
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+     "esModuleInterop": true,
+     "noEmit": true,
+     "allowJs": true,
+     "checkJs": true,
+     "lib": ["esnext", "dom"],
+     "baseUrl": ".",
+     "paths": {
+       "part:*": [".partTypes/parts/*"]
+     }
+  }
+}
