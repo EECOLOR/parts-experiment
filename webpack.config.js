@@ -31,6 +31,7 @@ module.exports = {
           const partsPath = require.resolve('./parts', resolveContext)
           const parts = removeFromCacheAndRequire(partsPath)
 
+          // https://webpack.js.org/api/compiler-hooks/#beforecompile
           params[partsParamName] = parts.reduce(
             (result, { name, type, implementation }) => {
               const entry = result[name] || (result[name] = { name, implementations: [] })
