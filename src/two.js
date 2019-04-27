@@ -1,6 +1,6 @@
 
 export default {
   key: {
-    value: 'two'
+    value: 'two-default'
   }
 }

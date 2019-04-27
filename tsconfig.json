@@ -2,13 +2,16 @@
   "exclude": ["node_modules"],
   "compilerOptions": {
      "esModuleInterop": true,
+     "strictNullChecks": true,
      "noEmit": true,
      "allowJs": true,
      "checkJs": true,
      "lib": ["esnext", "dom"],
      "baseUrl": ".",
      "paths": {
-       "part:*": [".partTypes/parts/*"]
+       "part:*": [".partTypes/parts/*"],
+       "optional:*": [".partTypes/optionalParts/*"],
+       "all:*": [".partTypes/allParts/*"]
      }
   }
 }

@@ -1,5 +1,3 @@
-export default {
-  test: 'value'
-}
+export default { test: 'one-default' }
 
-export const test = 'other'
+export const test = 'one-test'
