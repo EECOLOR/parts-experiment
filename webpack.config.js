@@ -20,13 +20,10 @@ module.exports = {
         const partsParamName = `${partsPluginName} - parts`
 
         const { beforeCompile } = compiler.hooks
-        const { resolveOptions } = compiler.resolverFactory.hooks
-        // make sure this one is first, it exposes parts for the other hooks (this can be changed later)
+        // make sure this one is first, it exposes parts for the other hooks
         beforeCompile.tapPromise(partsPluginName, resolveParts)
         beforeCompile.tapPromise(partsPluginName, writePartTypeDefinitions)
-        beforeCompile.tap(partsPluginName, exposePartsToResolver)
-        resolveOptions.for('normal').tap(partsPluginName, addPartResolverPluginToResolveOptions) // do we even need this? could we skip resolution altogether by hooking into the normal module factory?
-        beforeCompile.tap(partsPluginName, addPartLoaderAfterResolve)
+        beforeCompile.tap(partsPluginName, addPartsResolver)
 
         async function resolveParts(params) {
           const { context } = compiler
@@ -48,11 +45,11 @@ module.exports = {
           )
         }
 
-        async function writePartTypeDefinitions(params) {
+        async function writePartTypeDefinitions({ [partsParamName]: parts }) {
           const targetDir = path.resolve(compiler.context, '.partTypes')
           await fs.remove(targetDir)
           await Promise.all(
-            Object.values(params[partsParamName]).map(async ({ name, type }) => {
+            Object.values(parts).map(async ({ name, type }) => {
               if (type) {
                 const partsDir = path.resolve(targetDir, 'parts')
                 const optionalPartsDir = path.resolve(targetDir, 'optionalParts')
@@ -77,37 +74,30 @@ module.exports = {
           )
         }
 
-        function exposePartsToResolver({ normalModuleFactory, [partsParamName]: parts }) {
-          normalModuleFactory.hooks.beforeResolve.tap(
+        function addPartsResolver({ normalModuleFactory, [partsParamName]: parts }) {
+          normalModuleFactory.hooks.resolver.tap(
             partsPluginName,
-            x => ({ ...x, resolveOptions: { ...x.resolveOptions, [partsParamName]: parts } })
-          )
-        }
-
-        function addPartResolverPluginToResolveOptions({ [partsParamName]: parts, ...options }) {
-          return {
-            ...options,
-            plugins: [
-              ...(options.plugins || []),
-              createPartResolverPlugin(parts)
-            ]
-          }
-        }
-
-        function createPartResolverPlugin(parts) {
-          return { apply: resolver => { resolver.hooks.resolve.tap(partsPluginName, resolveIfPart) } }
-
-          function resolveIfPart(request, resolveContext) {
-            const innerRequest = request.request
-            const partsRequestType = getPartsRequestType(innerRequest)
-            if (partsRequestType) {
-              const [,partName] = innerRequest.split(':')
-              const part = parts[partName]
-              if (!part) throw new Error(`No part declared with the name '${partName}'`)
-              if (partsRequestType.isPartRequest && !part.implementations.length) throw new Error(`No implementations available for part '${partName}'`)
-              return { path: innerRequest, partsRequestType, part }
+            original => (data, callback) => {
+              const { request } = data
+              const partsRequestType = getPartsRequestType(request)
+              if (partsRequestType) {
+                const [,partName] = request.split(':')
+                const part = parts[partName]
+                if (!part) return callback(new Error(`No part declared with the name '${partName}'`))
+                if (partsRequestType.isPartRequest && !part.implementations.length) return callback(new Error(`No implementations available for part '${partName}'`))
+                const result = {
+                  request, userRequest: request, rawRequest: request, resource: request,
+                  loaders: [createPartLoader(part, partsRequestType)],
+                  type: 'javascript/auto',
+                  parser: normalModuleFactory.getParser('javascript/auto'),
+                  generator: normalModuleFactory.getGenerator('javascript/auto'),
+                  resolveOptions: {},
+                }
+                return callback(null, result)
+              }
+              original(data, callback)
             }
-          }
+          )
 
           function getPartsRequestType(request) {
             const isPartRequest = request.startsWith('part:')
@@ -116,23 +106,6 @@ module.exports = {
 
             return (isPartRequest || isOptionalPartRequest || isAllPartsRequest) &&
               { isPartRequest, isOptionalPartRequest, isAllPartsRequest }
-          }
-        }
-
-        function addPartLoaderAfterResolve({ normalModuleFactory, [partsParamName]: parts }) {
-          normalModuleFactory.hooks.afterResolve.tap(
-            partsPluginName,
-            injectPartLoaderIfPart
-          )
-
-          function injectPartLoaderIfPart(data) {
-            const { resourceResolveData: { path, partsRequestType, part } } = data
-            if (path && partsRequestType && part) {
-              return {
-                ...data,
-                loaders: [createPartLoader(part, partsRequestType)]
-              }
-            }
           }
         }
 

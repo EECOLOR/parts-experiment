@@ -13,7 +13,7 @@ import f from 'all:three'
 // import 'all:four' // No part declared with the name 'four'
 import g from 'all:five'
 
-console.log('test')
+console.log('-- test --')
 console.log({ test: 'one-default' }, a)
 console.log('one-test', test)
 console.log({ key: { value: 'two-default' } }, b)
