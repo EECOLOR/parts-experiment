@@ -31,5 +31,14 @@ module.exports = [
   {
     name: 'five',
     implementation: './src/five-2.js'
+  },
+  {
+    name: 'document',
+    type: './src/Document.d.ts',
+    implementation: './src/DefaultDocument.js'
+  },
+  {
+    name: 'color',
+    implementation: './src/DefaultColor.css'
   }
 ]

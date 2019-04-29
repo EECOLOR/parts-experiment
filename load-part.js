@@ -1,6 +1,6 @@
 module.exports = {
   pitch(remainingRequest, precedingRequest, data) {
-    const { part, partsRequestType: { isPartRequest, isOptionalPartRequest, isAllPartsRequest } } = this.query
+    const { part, partsRequestInfo: { isPartRequest, isOptionalPartRequest, isAllPartsRequest } } = this.query
     const { name, implementations } = part
     const [implementation] = implementations.slice(-1)
 

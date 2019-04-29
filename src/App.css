@@ -1,0 +1,7 @@
+.red {
+  color: red;
+}
+
+.color {
+  composes: color from '~part:color';
+}
