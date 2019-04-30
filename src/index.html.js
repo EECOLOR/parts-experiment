@@ -1,6 +1,7 @@
 import React from 'react'
 import Document from 'part:document'
 import ReactDom from 'react-dom/server'
+import docs from '-!raw-loader!all:document'
 
 delete __non_webpack_require__.cache[__non_webpack_require__.resolve('./manifest.json')]
 const manifest = __non_webpack_require__('./manifest.json')
@@ -11,4 +12,10 @@ const assets = Object.entries(manifest).reduce(
   },
   { js: [], css: [] }
 )
-export default ('<!doctype html>' + ReactDom.renderToStaticMarkup(<Document assets={assets} />))
+
+export default (
+  '<!doctype html>' +
+  ReactDom.renderToStaticMarkup(
+    <Document docs={docs.map(x => x.default)} assets={assets} />
+  )
+)

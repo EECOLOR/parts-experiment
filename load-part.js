@@ -1,20 +1,29 @@
 module.exports = {
   pitch(remainingRequest, precedingRequest, data) {
-    const { part, partsRequestInfo: { isPartRequest, isOptionalPartRequest, isAllPartsRequest } } = this.query
-    const { name, implementations } = part
+    const {
+      part: { implementations },
+      partsRequestInfo: { resource, isPartRequest, isOptionalPartRequest, isAllPartsRequest }
+    } = this.query
     const [implementation] = implementations.slice(-1)
 
-    if (isPartRequest)
-      return `module.exports = require('${implementation}'); // ${name}`
-    else if ((isOptionalPartRequest && implementation))
-      return `module.exports = { ...require('${implementation}') }; // ${name}` // *
-    else if (isOptionalPartRequest)
-      return `module.exports = null; // ${name}`
-    else if (isAllPartsRequest)
-      return `module.exports = [${implementations.map(x => `require('${x}')`).join(', ')}] // ${name}`
-    else { throw new Error('The matrix has changed, this is not a situation that should be possible. Somehow a `partsRequestType` object was created with no property set to `true`.') }
-  }
+    // make sure any loaders are executed
+    const r = implementation => this.remainingRequest.replace(resource, implementation)
+
+    const result = isPartRequest
+      ? throwError(`part: requests should not be handled by the loader`)
+      : isOptionalPartRequest && implementation
+      ? `module.exports = { ...require('${r(implementation)}') }; // ${resource}` // *
+      : isOptionalPartRequest
+      ? `module.exports = null; // ${resource}`
+      : isAllPartsRequest
+      ? `module.exports = [${implementations.map(x => `require('${r(x)}')`).join(', ')}] // ${resource}`
+      : throwError('The matrix has changed, this is not a situation that should be possible. Somehow a `partsRequestType` object was created with no property set to `true`.')
+
+    return result
+   }
 }
+
+function throwError(message) { throw new Error(message) } // https://github.com/tc39/proposal-throw-expressions
 
 /*
   This is a tricky problem to explain.

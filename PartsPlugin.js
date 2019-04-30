@@ -73,52 +73,48 @@ module.exports = function PartsPlugin({ generateTypeDefinitionFiles = false } = 
           partsPluginName,
           original => async (data, callback) => {
             try { // if you return a promise to a function that does not expect one, make sure it always completes without loosing errors
-              const { request, contextInfo, context } = data
+              const { request } = data
               const [resourceRequest] = request.split('!').slice(-1)
-              const partsRequestInfo = getPartsRequestInfo(resourceRequest)
+              const partsRequestInfo = getPartsResourceInfo(resourceRequest)
               if (partsRequestInfo) {
                 const partName = partsRequestInfo.name
                 const part = parts[partName]
                 if (!part) return callback(new Error(`No part declared with the name '${partName}'`))
-                if (partsRequestInfo.isPartRequest && !part.implementations.length) return callback(new Error(`No implementations available for part '${partName}'`))
-                const [implementation] = part.implementations
-                if (implementation && implementation.endsWith('.css')) {
-                  if (!partsRequestInfo.isPartRequest) return callback(new Error('Using `optional:` and `all:` requests is not supported for css'))
-                  return original(
-                    {
-                      ...data,
-                      request: request.replace(`part:${partName}`, implementation)
-                    },
-                    callback
-                  )
-                }
 
-                const resolveLoaders = createResolveLoaders(normalModuleFactory, contextInfo, context)
-                const result = {
-                  request, userRequest: request, rawRequest: request, resource: request,
-                  loaders: [...await extractLoadersFromRequest(request, resolveLoaders), createPartLoader(part, partsRequestInfo)],
-                  type: 'javascript/auto',
-                  parser: normalModuleFactory.getParser('javascript/auto'),
-                  generator: normalModuleFactory.getGenerator('javascript/auto'),
-                  resolveOptions: {},
+                if (partsRequestInfo.isPartRequest) {
+                  if (!part.implementations.length) return callback(new Error(`No implementations available for part '${partName}'`))
+                  const [implementation] = part.implementations.slice(-1)
+                  original({ ...data, request: request.replace(resourceRequest, implementation) }, callback)
+                } else {
+                  const result = {
+                    request, userRequest: request, rawRequest: request, resource: request,
+                    loaders: [createPartLoader(part, partsRequestInfo)],
+                    type: 'javascript/auto',
+                    parser: normalModuleFactory.getParser('javascript/auto'),
+                    generator: normalModuleFactory.getGenerator('javascript/auto'),
+                    resolveOptions: {
+                      isPartRequest: true
+                    },
+                  }
+                  callback(null, result)
                 }
-                return callback(null, result)
-              }
-              original(data, callback)
-            } catch (e) {
-              callback(e)
-            }
+              } else  original(data, callback)
+            } catch (e) { callback(e) }
           }
         )
+        normalModuleFactory.hooks.module.tap(partsPluginName, (module, result) => {
+          // context of a normal module is extracted from the request, so we need to adjust it
+          if (result.resolveOptions.isPartRequest) module.context = result.context
+        })
 
-        function getPartsRequestInfo(request) {
-          const isPartRequest = request.startsWith('part:') && request.slice(5)
-          const isOptionalPartRequest = request.startsWith('optional:') && request.slice(9)
-          const isAllPartsRequest = request.startsWith('all:') && request.slice(4)
+        function getPartsResourceInfo(resource) {
+          const isPartRequest = resource.startsWith('part:') && resource.slice(5)
+          const isOptionalPartRequest = resource.startsWith('optional:') && resource.slice(9)
+          const isAllPartsRequest = resource.startsWith('all:') && resource.slice(4)
 
           const name = (isPartRequest || isOptionalPartRequest || isAllPartsRequest)
           return name &&
-            { isPartRequest, isOptionalPartRequest, isAllPartsRequest, name }
+            { isPartRequest, isOptionalPartRequest, isAllPartsRequest, name, resource }
         }
       }
 
@@ -136,46 +132,4 @@ module.exports = function PartsPlugin({ generateTypeDefinitionFiles = false } = 
 function removeFromCacheAndRequire(path) {
   delete require.cache[path] // https://nodejs.org/docs/latest-v10.x/api/modules.html#modules_require_cache
   return require(path)
-}
-
-// copied from NormalModuleLoader, we need al this stuff because some plugins and loaders rely on it
-//   if it was just user requests we would not need to go through all this trouble
-//
-// we can simplify this if we have control over the plugins and loaders that are used
-async function extractLoadersFromRequest(request, resolveLoaders) {
-  const loaderIdents = request
-    .replace(/^-?!+/, '')
-    .replace(/!!+/g, '!')
-    .split('!')
-    .slice(0, -1) // last part is the resource
-
-  const requestedLoaders = loaderIdents.map(identToLoaderRequest)
-  return resolveLoaders(requestedLoaders)
-}
-
-function identToLoaderRequest(loaderRequest) {
-  const [loader, ...optionParts] = loaderRequest.split('?')
-  const options = optionParts.join('?') || undefined
-  return { loader, options }
-}
-
-function createResolveLoaders(normalModuleFactory, contextInfo, context) {
-  const resolver = normalModuleFactory.getResolver('loader')
-
-  return async array => {
-    const loaders = await new Promise((resolve, reject) => {
-      normalModuleFactory.resolveRequestArray(contextInfo, context, array, resolver, (err, result) => {
-        if (err) reject(err)
-        else resolve(result)
-      })
-    })
-    loaders.forEach(x => {
-      if (typeof x.options === "string" && x.options[0] === "?") {
-        const ident = x.options.substr(1)
-        x.options = normalModuleFactory.ruleSet.findOptionsByIdent(ident)
-        x.ident = ident
-      }
-    })
-    return loaders
-  }
 }
