@@ -108,8 +108,11 @@ module.exports = function PartsPlugin({ generateTypeDefinitionFiles = false } = 
         })
 
         function getPartsResourceInfo(resource) {
-          const isPartRequest = resource.startsWith('part:') && resource.slice(5)
-          const isOptionalPartRequest = resource.startsWith('optional:') && resource.slice(9)
+          const isPart = resource.startsWith('part:') && resource.slice(5)
+          const isOptionalPartRequest =
+            (isPart && isPart.slice(-1) === '?' && isPart.slice(0, -1)) ||
+            (resource.startsWith('optional:') && resource.slice(9))
+          const isPartRequest = !isOptionalPartRequest && isPart
           const isAllPartsRequest = resource.startsWith('all:') && resource.slice(4)
 
           const name = (isPartRequest || isOptionalPartRequest || isAllPartsRequest)
