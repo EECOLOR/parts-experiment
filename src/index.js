@@ -12,9 +12,13 @@ import d from 'optional:one'
 import d1 from 'part:one?'
 
 import e from 'all:one'
+import e1 from 'all:part:one'
 import f from 'all:three'
+import f1 from 'all:part:three'
+
 // import 'all:four' // No part declared with the name 'four'
 import g from 'all:five'
+import g1 from 'all:part:five'
 
 import React from 'react'
 import ReactDOM from 'react-dom'
@@ -28,9 +32,9 @@ const results = [
   compare(null, c, c1),
   compare({ test: 'one-default' }, d && d.default, d1 && d1.default),
   compare('one-test', d && d.test, d1 && d1.test),
-  compare([{ default: { test: 'one-default' }, test: 'one-test' }], e.map(x => ({ ...x }))),
-  compare([], f),
-  compare([{ default: 'five-1' }, { default: 'five-2' }], g.map(x => ({ ...x }))),
+  compare([{ default: { test: 'one-default' }, test: 'one-test' }], e.map(x => ({ ...x })), e1.map(x => ({ ...x }))),
+  compare([], f, f1),
+  compare([{ default: 'five-1' }, { default: 'five-2' }], g.map(x => ({ ...x })), g1.map(x => ({ ...x }))),
 ]
 
 function createApp() { return <App results={results} />}

@@ -113,7 +113,9 @@ module.exports = function PartsPlugin({ generateTypeDefinitionFiles = false } = 
             (isPart && isPart.slice(-1) === '?' && isPart.slice(0, -1)) ||
             (resource.startsWith('optional:') && resource.slice(9))
           const isPartRequest = !isOptionalPartRequest && isPart
-          const isAllPartsRequest = resource.startsWith('all:') && resource.slice(4)
+          const isAllPartsRequest =
+            (resource.startsWith('all:part:') && resource.slice(9)) ||
+            (resource.startsWith('all:') && resource.slice(4))
 
           const name = (isPartRequest || isOptionalPartRequest || isAllPartsRequest)
           return name &&

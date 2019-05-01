@@ -13,6 +13,7 @@
        "part:*?": [".partTypes/optionalParts/*"],
        "part:*": [".partTypes/parts/*"],
        "optional:*": [".partTypes/optionalParts/*"],
+       "all:part:*": [".partTypes/allParts/*"],
        "all:*": [".partTypes/allParts/*"]
      }
   }
