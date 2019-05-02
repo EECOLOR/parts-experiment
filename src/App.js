@@ -5,6 +5,8 @@ export default function App({ results }) {
   return (
     <div>
       <p className={styles.red}>I am the app</p>
+      <p className={styles.green}>I am the app</p>
+      <p className={styles.purple}>I am the app</p>
       <p className={styles.color}>I am the color</p>
       {results.reduce((result, x) => result && x.success, true)
         ? <h3 style={{color: 'green'}}>Success</h3>

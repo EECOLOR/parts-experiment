@@ -7,17 +7,21 @@
 const path = require('path')
 const fs = require('fs-extra')
 
-module.exports = function PartsPlugin({ generateTypeDefinitionFiles = false } = {}) {
+module.exports = PartsPlugin
+
+PartsPlugin.getResolve = getResolve
+function PartsPlugin({ generateTypeDefinitionFiles = false } = {}) {
   return {
     apply: compiler => {
       const partsPluginName = 'PartsPlugin'
       const partsParamName = `${partsPluginName} - parts`
 
-      const { beforeCompile } = compiler.hooks
+      const { beforeCompile, compilation } = compiler.hooks
       // make sure this one is first, it exposes parts for the other hooks
       beforeCompile.tapPromise(partsPluginName, resolveParts)
       if (generateTypeDefinitionFiles) beforeCompile.tapPromise(partsPluginName, writePartTypeDefinitions)
       beforeCompile.tap(partsPluginName, addPartsResolver)
+      compilation.tap(partsPluginName, addGetPartsResourceInfoToLoaderContext)
 
       async function resolveParts(params) {
         const { context } = compiler
@@ -74,27 +78,19 @@ module.exports = function PartsPlugin({ generateTypeDefinitionFiles = false } = 
           original => async (data, callback) => {
             try { // if you return a promise to a function that does not expect one, make sure it always completes without loosing errors
               const { request } = data
-              const [resourceRequest] = request.split('!').slice(-1)
-              const partsRequestInfo = getPartsResourceInfo(resourceRequest)
-              if (partsRequestInfo) {
-                const partName = partsRequestInfo.name
-                const part = parts[partName]
-                if (!part) return callback(new Error(`No part declared with the name '${partName}'`))
+              const partsResourceInfo = getPartsResourceInfo(request, parts)
+              if (partsResourceInfo) {
+                const { part, isSinglePartRequest, getRequestWithImplementation } = partsResourceInfo
 
-                if (partsRequestInfo.isPartRequest) {
-                  if (!part.implementations.length) return callback(new Error(`No implementations available for part '${partName}'`))
-                  const [implementation] = part.implementations.slice(-1)
-                  original({ ...data, request: request.replace(resourceRequest, implementation) }, callback)
-                } else {
+                if (isSinglePartRequest) original({ ...data, request: getRequestWithImplementation() }, callback)
+                else {
                   const result = {
                     request, userRequest: request, rawRequest: request, resource: request,
-                    loaders: [createPartLoader(part, partsRequestInfo)],
+                    loaders: [createPartLoader(part, partsResourceInfo)],
                     type: 'javascript/auto',
                     parser: normalModuleFactory.getParser('javascript/auto'),
                     generator: normalModuleFactory.getGenerator('javascript/auto'),
-                    resolveOptions: {
-                      isPartRequest: true
-                    },
+                    resolveOptions: { isPartLoaderRequest: true },
                   }
                   callback(null, result)
                 }
@@ -103,34 +99,69 @@ module.exports = function PartsPlugin({ generateTypeDefinitionFiles = false } = 
           }
         )
         normalModuleFactory.hooks.module.tap(partsPluginName, (module, result) => {
+          module.loaders.length && result.request.includes('App.css')// && console.log(parts)
           // context of a normal module is extracted from the request, so we need to adjust it
-          if (result.resolveOptions.isPartRequest) module.context = result.context
+          if (result.resolveOptions && result.resolveOptions.isPartLoaderRequest)
+            module.context = result.context
         })
-
-        function getPartsResourceInfo(resource) {
-          const isPart = resource.startsWith('part:') && resource.slice(5)
-          const isOptionalPartRequest =
-            (isPart && isPart.slice(-1) === '?' && isPart.slice(0, -1)) ||
-            (resource.startsWith('optional:') && resource.slice(9))
-          const isPartRequest = !isOptionalPartRequest && isPart
-          const isAllPartsRequest =
-            (resource.startsWith('all:part:') && resource.slice(9)) ||
-            (resource.startsWith('all:') && resource.slice(4))
-
-          const name = (isPartRequest || isOptionalPartRequest || isAllPartsRequest)
-          return name &&
-            { isPartRequest, isOptionalPartRequest, isAllPartsRequest, name, resource }
-        }
       }
 
-      function createPartLoader(part, partsRequestInfo) {
-        return {
-          loader: path.resolve(compiler.context, 'load-part'), // add a loader for this resource
-          options: { part, partsRequestInfo } // make sure the loader knows what part is required
-        }
+      function addGetPartsResourceInfoToLoaderContext(compilation, { [partsParamName]: parts }) {
+        // this plugin will be moved in webpack v5 (while the documentation states it will be removed...) -> https://github.com/webpack/webpack.js.org/pull/2988
+        compilation.hooks.normalModuleLoader.tap(partsPluginName, (loaderContext, module) => {
+          //console.log(module.resource, 'adding getPartsResourceInfo')
+          loaderContext.getPartsResourceInfo = request => getPartsResourceInfo(request, parts)
+        })
+      }
+    },
+  }
+}
+
+function createPartLoader(part, partsResourceInfo) {
+  return {
+    loader: require.resolve('./load-part'),
+    options: { part, partsResourceInfo } // make sure the loader knows what part is required
+  }
+}
+
+function getResolve(loaderContext) {
+  const resolve = loaderContext.getResolve()
+  const { getPartsResourceInfo } = loaderContext
+
+  return async (context, file) => {
+    const { isSinglePartRequest, getRequestWithImplementation } = getPartsResourceInfo(file) || {}
+    const request = isSinglePartRequest ? getRequestWithImplementation() : file
+    return resolve(context, request)
+  }
+}
+
+function getPartsResourceInfo(request, parts) {
+  const [resource] = request.split('!').slice(-1)
+  const isPart = resource.startsWith('part:') && resource.slice(5)
+  const isOptionalPartRequest =
+    (isPart && isPart.slice(-1) === '?' && isPart.slice(0, -1)) ||
+    (resource.startsWith('optional:') && resource.slice(9))
+  const isSinglePartRequest = !isOptionalPartRequest && isPart
+  const isAllPartsRequest =
+    (resource.startsWith('all:part:') && resource.slice(9)) ||
+    (resource.startsWith('all:') && resource.slice(4))
+
+  const name = (isSinglePartRequest || isOptionalPartRequest || isAllPartsRequest)
+  const part = name && (parts[name] || throwError(`No part declared with the name '${name}'`))
+  return name &&
+    {
+      isSinglePartRequest,
+      isOptionalPartRequest,
+      isAllPartsRequest,
+      name,
+      resource,
+      part,
+      getRequestWithImplementation: () => {
+        if (!part.implementations.length) throwError(`No implementations available for part '${name}'`)
+        const [implementation] = part.implementations.slice(-1)
+        return request.replace(resource, implementation)
       }
     }
-  }
 }
 
 // might want to switch to `import-fresh`
@@ -138,3 +169,5 @@ function removeFromCacheAndRequire(path) {
   delete require.cache[path] // https://nodejs.org/docs/latest-v10.x/api/modules.html#modules_require_cache
   return require(path)
 }
+
+function throwError(message) { throw new Error(message) }

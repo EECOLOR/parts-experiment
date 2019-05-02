@@ -40,5 +40,13 @@ module.exports = [
   {
     name: 'color',
     implementation: './src/DefaultColor.css'
+  },
+  {
+    name: 'green',
+    implementation: './src/green.css'
+  },
+  {
+    name: 'purple',
+    implementation: './src/purple.css'
   }
 ]

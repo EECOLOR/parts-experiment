@@ -2,7 +2,7 @@ module.exports = {
   pitch(remainingRequest, precedingRequest, data) {
     const {
       part: { implementations },
-      partsRequestInfo: { resource, isPartRequest, isOptionalPartRequest, isAllPartsRequest }
+      partsResourceInfo: { resource, isPartRequest, isOptionalPartRequest, isAllPartsRequest }
     } = this.query
     const [implementation] = implementations.slice(-1)
 
