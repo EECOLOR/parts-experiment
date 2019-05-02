@@ -99,7 +99,6 @@ function PartsPlugin({ generateTypeDefinitionFiles = false } = {}) {
           }
         )
         normalModuleFactory.hooks.module.tap(partsPluginName, (module, result) => {
-          module.loaders.length && result.request.includes('App.css')// && console.log(parts)
           // context of a normal module is extracted from the request, so we need to adjust it
           if (result.resolveOptions && result.resolveOptions.isPartLoaderRequest)
             module.context = result.context
@@ -109,7 +108,6 @@ function PartsPlugin({ generateTypeDefinitionFiles = false } = {}) {
       function addGetPartsResourceInfoToLoaderContext(compilation, { [partsParamName]: parts }) {
         // this plugin will be moved in webpack v5 (while the documentation states it will be removed...) -> https://github.com/webpack/webpack.js.org/pull/2988
         compilation.hooks.normalModuleLoader.tap(partsPluginName, (loaderContext, module) => {
-          //console.log(module.resource, 'adding getPartsResourceInfo')
           loaderContext.getPartsResourceInfo = request => getPartsResourceInfo(request, parts)
         })
       }
