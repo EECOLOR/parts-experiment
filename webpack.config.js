@@ -3,8 +3,13 @@ const PartsPlugin = require('./PartsPlugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const ExtractCssChunks = require('mini-css-extract-plugin')
 const { HotModuleReplacementPlugin } = require('webpack')
+const nodeExternals = require('webpack-node-externals')
+const importFresh = require('import-fresh')
 
 const isProduction = process.env.NODE_ENV === 'production'
+
+const outputPath = path.resolve(__dirname, 'dist')
+const mode = isProduction ? 'production' : 'development'
 
 const jsLoader = {
   test: /\.js$/,
@@ -60,46 +65,55 @@ const cssLoader = {
 
 module.exports = [
   {
-    mode: 'development',
+    mode,
     target: 'web',
     entry: { client: './src/index.js' },
     output: {
       publicPath: '/',
       filename: '[name].[hash].js',
-      path: path.resolve(__dirname, 'dist')
+      path: outputPath
     },
     module: { rules: [jsLoader, cssLoader] },
-    plugins: [PartsPlugin(), new ManifestPlugin(), new ExtractCssChunks(), new HotModuleReplacementPlugin()],
+    plugins: [
+      PartsPlugin(),
+      new ManifestPlugin(),
+      new ExtractCssChunks({
+        filename: isProduction ? '[name].[hash].css' : '[name].css' // https://github.com/webpack-contrib/mini-css-extract-plugin/issues/391
+      }),
+      !isProduction && new HotModuleReplacementPlugin()
+    ].filter(Boolean),
     devServer: {
-      hot: true,
+      hot: !isProduction,
       writeToDisk: true,
       serveIndex: false,
       after: (app, server) => {
         app.get('*', (req, res) => {
-          const index = require.resolve(path.resolve(__dirname, 'dist', 'index.html'))
-          delete require.cache[index]
-          const html = require(index)
+          const html = importFresh(path.resolve(outputPath, 'index.html'))
           res.status(200).send(html.default)
         })
       }
     }
   },
   {
-    mode: 'development',
+    mode,
     target: 'node',
+    externals: [nodeExternals()],
     entry: { ['index.html']: './src/index.html.js' },
     output: {
       filename: '[name].js',
-      path: path.resolve(__dirname, 'dist'),
+      path: outputPath,
       libraryTarget: 'commonjs'
     },
     module: { rules: [jsLoader] },
-    plugins: [PartsPlugin({ generateTypeDefinitionFiles: true }), {
-      apply: compiler => {
-        compiler.hooks.entryOption.tap('https://github.com/webpack/webpack-dev-server/pull/1775', (context, entry) => {
-          entry['index.html'] = './src/index.html.js'
-        })
+    plugins: [
+      PartsPlugin({ generateTypeDefinitionFiles: true }),
+      {
+        apply: compiler => {
+          compiler.hooks.entryOption.tap('https://github.com/webpack/webpack-dev-server/pull/1775', (context, entry) => {
+            entry['index.html'] = './src/index.html.js'
+          })
+        }
       }
-    }]
+    ]
   }
 ]

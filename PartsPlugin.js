@@ -3,9 +3,9 @@
 //   full backwards compatibility (if possible) and see how much complexity is introduced
 // https://www.sanity.io/docs/extending/parts
 
-
 const path = require('path')
 const fs = require('fs-extra')
+const importFresh = require('import-fresh')
 
 module.exports = PartsPlugin
 
@@ -45,7 +45,7 @@ function PartsPlugin({ generateTypeDefinitionFiles = false } = {}) {
 }
 
 async function resolveParts(context) {
-  const parts = removeFromCacheAndRequire(resolve('./parts'))
+  const parts = importFresh(resolve('./parts'))
 
   return parts.reduce(
     (result, { name, type, implementation }) => {
@@ -80,6 +80,7 @@ function addPartsResolver(normalModuleFactory, parts) {
               parser: normalModuleFactory.getParser('javascript/auto'),
               generator: normalModuleFactory.getGenerator('javascript/auto'),
               resolveOptions: { isPartLoaderRequest: true },
+              settings: {},
             }
             callback(null, result)
           }
@@ -183,12 +184,6 @@ function getPartsResourceInfo(request, parts) {
         return request.replace(resource, implementation)
       }
     }
-}
-
-// might want to switch to `import-fresh`
-function removeFromCacheAndRequire(path) {
-  delete require.cache[path] // https://nodejs.org/docs/latest-v10.x/api/modules.html#modules_require_cache
-  return require(path)
 }
 
 function throwError(message) { throw new Error(message) }
