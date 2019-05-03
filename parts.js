@@ -14,6 +14,25 @@ module.exports = [
                  //   if we choose to have that, things might get more complicated. Reexporting a part
                  //   can still be done with this setup by creating a new part with it's own type.
                  //   check https://www.sanity.io/docs/extending/parts
+                 //
+                 // To help prevent typos we might want to go with 'implements' if that is the
+                 // intention. I would however not prevent the combination of 'name' and 'implementation'.
+                 // This also helps with accidentally implementing an existing part when the intention
+                 // is to declare a part.
+                 //
+                 // Proposed rules:
+                 // - name: (required to declare a part) to declare a part with a name
+                 // - implements: (required to implement a part) to reference the part that is implemented
+                 // - implementation: (optional with name, required with implements) to add an implementation
+                 // - type: (optional with name, forbidden with implements) to add a type definition
+                 //
+                 // Valid combinations:
+                 // - name
+                 // - name, type
+                 // - name, implementation
+                 // - name, type, implementation
+                 // - name, implements, implementation
+                 // - implements, implementation
     implementation: './src/two.js'
   },
   {
