@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "build": "webpack",
-    "start": "rm dist/ -R;NODE_ENV=development webpack-dev-server"
+    "start": "rm dist/ -R;rm .partTypes/ -R;NODE_ENV=development webpack-dev-server"
   },
   "devDependencies": {
     "@babel/core": "^7.4.4",

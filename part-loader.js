@@ -2,15 +2,18 @@ module.exports = {
   pitch(remainingRequest, precedingRequest, data) {
     const {
       part: { implementations },
-      partsResourceInfo: { resource, isPartRequest, isOptionalPartRequest, isAllPartsRequest }
-    } = this.query
+      resource, isPartRequest,
+      isOptionalPartRequest,
+      isAllPartsRequest
+    } = this.query.partsResourceInfo
+
     const [implementation] = implementations.slice(-1)
 
     // make sure any loaders are executed
-    const r = implementation => this.remainingRequest.replace(resource, implementation)
+    const r = implementation => remainingRequest.replace(resource, implementation)
 
     const result = isPartRequest
-      ? throwError(`part: requests should not be handled by the loader`)
+      ? throwError(`part: requests should not be handled by the part-loader`)
       : isOptionalPartRequest && implementation
       ? `module.exports = { ...require('${r(implementation)}') }; // ${resource}` // *
       : isOptionalPartRequest
