@@ -12,8 +12,33 @@ module.exports = PartsPlugin
 const name = 'PartsPlugin'
 const partsParamName = `${name} - parts`
 
+async function loadPartsJs() {
+  // TODO: resolve from plugins
+  return importFresh('./parts')
+}
+async function loadSanityParts() {
+  // TODO: resolve from plugins - resolve from defined paths
+
+  return importFresh('./sanity.json')
+    .parts
+    .reduce(
+      (result, { name, implements, path }) => {
+        const newParts = [
+          name && { name: name.slice(5), implementation: path },
+          implements && { name: implements.slice(5), implementation: path }
+        ].filter(Boolean)
+        return [...result, ...newParts]
+      },
+      []
+    )
+}
+
 PartsPlugin.getResolve = getResolve
-function PartsPlugin({ generateTypeDefinitionFiles = false } = {}) {
+function PartsPlugin({
+  generateTypeDefinitionFiles = false,
+  backwardsCompatible = true,
+  loadParts = backwardsCompatible ? loadSanityParts : loadPartsJs
+} = {}) {
   return {
     apply: compiler => {
       let partsToEmit
@@ -25,10 +50,11 @@ function PartsPlugin({ generateTypeDefinitionFiles = false } = {}) {
 
       async function beforeCompile(params) {
         if (params[partsParamName]) return
-        const parts = await resolveParts(compiler.context)
+        const parts = await loadParts()
+        const resolvedParts = await resolveParts(parts, compiler.context)
         // https://webpack.js.org/api/compiler-hooks/#beforecompile
-        params[partsParamName] = parts
-        partsToEmit = parts
+        params[partsParamName] = resolvedParts
+        partsToEmit = resolvedParts
       }
 
       function compilation(compilation, { normalModuleFactory, [partsParamName]: parts }) {
@@ -44,9 +70,7 @@ function PartsPlugin({ generateTypeDefinitionFiles = false } = {}) {
   }
 }
 
-async function resolveParts(context) {
-  const parts = importFresh(resolve('./parts'))
-
+async function resolveParts(parts, context) {
   return parts.reduce(
     (result, { name, type, implementation }) => {
       const entry = result[name] || (result[name] = { name, implementations: [] })

@@ -1,0 +1,61 @@
+{
+  "parts": [
+    {
+      "name": "part:one"
+    },
+    {
+      "implements": "part:one",
+      "path": "./src/one.js"
+    },
+    {
+      "name": "part:two"
+    },
+    {
+      "implements": "part:two",
+      "path": "./src/two.js"
+    },
+    {
+      "name": "part:three"
+    },
+    {
+      "name": "part:five"
+    },
+    {
+      "implements": "part:five",
+      "path": "./src/five-1.js"
+    },
+    {
+      "implements": "part:five",
+      "path": "./src/five-2.js"
+    },
+    {
+      "name": "part:document"
+    },
+    {
+      "implements": "part:document",
+      "path": "./src/DefaultDocument.js"
+    },
+    {
+      "name": "part:color"
+    },
+    {
+      "implements": "part:color",
+      "path": "./src/DefaultColor.css"
+    },
+    {
+      "name": "part:green"
+    },
+    {
+      "implements": "part:green",
+      "path": "./src/green.css"
+    },
+    {
+      "name": "part:purple"
+    },
+    {
+      "name": "part:purple-default",
+      "implements": "part:purple",
+      "path": "./src/purple.css"
+    }
+  ]
+}

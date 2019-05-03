@@ -4,6 +4,10 @@
   color: red;
 }
 
+.purpleDefault {
+  composes: purple from '~part:purple-default';
+}
+
 .color {
   composes: color from '~part:color';
 }

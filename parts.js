@@ -48,5 +48,9 @@ module.exports = [
   {
     name: 'purple',
     implementation: './src/purple.css'
+  },
+  {
+    name: 'purple-default',
+    implementation: './src/purple.css'
   }
 ]

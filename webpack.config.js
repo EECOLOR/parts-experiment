@@ -11,6 +11,8 @@ const isProduction = process.env.NODE_ENV === 'production'
 const outputPath = path.resolve(__dirname, 'dist')
 const mode = isProduction ? 'production' : 'development'
 
+const backwardsCompatible = true
+
 const jsLoader = {
   test: /\.js$/,
   exclude: /node_modules/,
@@ -75,7 +77,7 @@ module.exports = [
     },
     module: { rules: [jsLoader, cssLoader] },
     plugins: [
-      PartsPlugin(),
+      PartsPlugin({ backwardsCompatible }),
       new ManifestPlugin(),
       new ExtractCssChunks({
         filename: isProduction ? '[name].[hash].css' : '[name].css' // https://github.com/webpack-contrib/mini-css-extract-plugin/issues/391
@@ -106,7 +108,7 @@ module.exports = [
     },
     module: { rules: [jsLoader] },
     plugins: [
-      PartsPlugin({ generateTypeDefinitionFiles: true }),
+      PartsPlugin({ generateTypeDefinitionFiles: true, backwardsCompatible }),
       {
         apply: compiler => {
           compiler.hooks.entryOption.tap('https://github.com/webpack/webpack-dev-server/pull/1775', (context, entry) => {
