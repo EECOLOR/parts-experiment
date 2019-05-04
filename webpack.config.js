@@ -11,7 +11,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 const outputPath = path.resolve(__dirname, 'dist')
 const mode = isProduction ? 'production' : 'development'
 
-const backwardsCompatible = true
+const backwardsCompatible = false
 
 const jsLoader = {
   test: /\.js$/,

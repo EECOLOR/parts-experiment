@@ -12,23 +12,27 @@ module.exports = PartsPlugin
 const name = 'PartsPlugin'
 const partsParamName = `${name} - parts`
 
-async function loadPartsJs() {
+async function loadPartsJs(context) {
+  const source = resolve('./parts', context)
   // TODO: resolve from plugins
-  return importFresh('./parts')
+  return importFresh(source).map(x => ({ ...x, source }))
 }
-async function loadSanityParts() {
+async function loadSanityParts(context) {
+  const source = resolve('./sanity.json', context)
   // TODO: resolve from plugins - resolve from defined paths
 
-  return importFresh('./sanity.json')
+  return importFresh(source)
     .parts
     .reduce(
-      (result, { name, implements, path }) => {
-        const newParts = [
-          name && { name: name.slice(5), implementation: path },
-          implements && { name: implements.slice(5), implementation: path }
-        ].filter(Boolean)
-        return [...result, ...newParts]
-      },
+      (result, { name, implements, path }) => [
+        ...result,
+        {
+          name: name && name.slice(5),
+          implements: implements && implements.slice(5),
+          implementation: path,
+          source
+        }
+      ],
       []
     )
 }
@@ -50,8 +54,9 @@ function PartsPlugin({
 
       async function beforeCompile(params) {
         if (params[partsParamName]) return
-        const parts = await loadParts()
-        const resolvedParts = await resolveParts(parts, compiler.context)
+        const context = compiler.context
+        const parts = await loadParts(context)
+        const resolvedParts = await resolveParts(parts, context)
         // https://webpack.js.org/api/compiler-hooks/#beforecompile
         params[partsParamName] = resolvedParts
         partsToEmit = resolvedParts
@@ -72,18 +77,34 @@ function PartsPlugin({
 
 async function resolveParts(parts, context) {
   return parts.reduce(
-    (result, { name, type, implementation }) => {
-      const entry = result[name] || (result[name] = { name, implementations: [] })
-      if (type && entry.type && entry.type !== type) throw new Error(`Two parts with the name '${name}' are defined`)
-      if (type) entry.type = resolve(type)
-      if (implementation) entry.implementations.push(resolve(implementation))
+    (result, { name, implements, type, implementation, source }) => {
+      if (name && result[name]) throwError(`Illegal definition of '${name}' in ${c(source)}, a part with this name was already defined in ${c(existingEntry.source)}`)
+      if (implements && type) throwError(`Illegal property 'type' in implementation of '${implements}' in ${c(source)}`)
+      if (implements && !implementation) throwError(`Missing property 'implementation' in implementation of '${implements}' in ${c(source)}'`)
+      if (implements && !result[implements]) throwError(`No part with name '${implements}' found for the implementation defined in ${c(source)}`)
+
+      const resolvedImplementation = implementation && resolve(implementation, context)
+
+      if (name)
+        result[name] = {
+          name,
+          type: type && resolve(type, context),
+          implementations: [resolvedImplementation].filter(Boolean),
+          source,
+        }
+
+      if (implements)
+        result[implements].implementations.push(resolvedImplementation)
+
       return result
     },
     {}
   )
 
-  function resolve(path) { return require.resolve(path, { paths: [context] }) }
+  function c(x) { return x.replace(context, '') }
 }
+
+function resolve(path, context) { return require.resolve(path, { paths: [context] }) }
 
 function addPartsResolver(normalModuleFactory, parts) {
   normalModuleFactory.hooks.resolver.tap(
