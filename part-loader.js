@@ -6,6 +6,7 @@ module.exports = {
       isOptionalPartRequest,
       isAllPartsRequest
     } = this.query.partsResourceInfo
+    const { backwardsCompatible } = this.query
 
     const [implementation] = implementations.slice(-1)
 
@@ -14,18 +15,21 @@ module.exports = {
 
     const result = isPartRequest
       ? throwError(`part: requests should not be handled by the part-loader`)
-      : this.query.backwardsCompatible && isOptionalPartRequest && implementation
+      : backwardsCompatible && isOptionalPartRequest && implementation
       ? throwError('The matrix has changed, this is not a situation that should be possible. Somehow an optional part with implementation was passed to the loader.')
       : isOptionalPartRequest && implementation
       ? `module.exports = { ...require('${r(implementation)}') }; // ${resource}` // *
       : isOptionalPartRequest
       ? `module.exports = undefined; // ${resource}`
+      : backwardsCompatible && isAllPartsRequest
+      ? `module.exports = [${implementations.map(x => `require('${r(x)}')`).join(', ')}]
+          .map(x => x && x.__esModule ? x['default'] : x) // ${resource}`
       : isAllPartsRequest
       ? `module.exports = [${implementations.map(x => `require('${r(x)}')`).join(', ')}] // ${resource}`
       : throwError('The matrix has changed, this is not a situation that should be possible. Somehow a `partsRequestType` object was created with no property set to `true`.')
 
     return result
-   }
+  }
 }
 
 function throwError(message) { throw new Error(message) } // https://github.com/tc39/proposal-throw-expressions

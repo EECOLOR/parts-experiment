@@ -123,8 +123,7 @@ function addPartsResolver(normalModuleFactory, parts, backwardsCompatible) {
               request, userRequest: request, rawRequest: request, resource: request,
               loaders: [{
                 loader: require.resolve('./part-loader'),
-                options: { partsResourceInfo },
-                backwardsCompatible
+                options: { partsResourceInfo, backwardsCompatible },
               }],
               type: 'javascript/auto',
               parser: normalModuleFactory.getParser('javascript/auto'),
