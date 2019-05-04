@@ -2,7 +2,7 @@ const path = require('path')
 const PartsPlugin = require('./PartsPlugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const ExtractCssChunks = require('mini-css-extract-plugin')
-const { HotModuleReplacementPlugin } = require('webpack')
+const { HotModuleReplacementPlugin, DefinePlugin } = require('webpack')
 const nodeExternals = require('webpack-node-externals')
 const importFresh = require('import-fresh')
 
@@ -11,7 +11,7 @@ const isProduction = process.env.NODE_ENV === 'production'
 const outputPath = path.resolve(__dirname, 'dist')
 const mode = isProduction ? 'production' : 'development'
 
-const backwardsCompatible = true
+const backwardsCompatible = false
 
 const jsLoader = {
   test: /\.js$/,
@@ -82,7 +82,8 @@ module.exports = [
       new ExtractCssChunks({
         filename: isProduction ? '[name].[hash].css' : '[name].css' // https://github.com/webpack-contrib/mini-css-extract-plugin/issues/391
       }),
-      !isProduction && new HotModuleReplacementPlugin()
+      !isProduction && new HotModuleReplacementPlugin(),
+      new DefinePlugin({ BACKWARDS_COMPATIBLE: JSON.stringify(backwardsCompatible) })
     ].filter(Boolean),
     devServer: {
       hot: !isProduction,
@@ -119,3 +120,5 @@ module.exports = [
     ]
   }
 ]
+
+// This is just for

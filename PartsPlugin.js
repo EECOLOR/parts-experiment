@@ -63,7 +63,7 @@ function PartsPlugin({
       }
 
       function compilation(compilation, { normalModuleFactory, [partsParamName]: parts }) {
-        addPartsResolver(normalModuleFactory, parts)
+        addPartsResolver(normalModuleFactory, parts, backwardsCompatible)
         addGetPartsResourceInfoToLoaderContext(compilation, parts)
         providePartsToChildCompilers(compilation, parts)
       }
@@ -106,7 +106,7 @@ async function resolveParts(parts, context) {
 
 function resolve(path, context) { return require.resolve(path, { paths: [context] }) }
 
-function addPartsResolver(normalModuleFactory, parts) {
+function addPartsResolver(normalModuleFactory, parts, backwardsCompatible) {
   normalModuleFactory.hooks.resolver.tap(
     name,
     original => async (data, callback) => {
@@ -114,13 +114,18 @@ function addPartsResolver(normalModuleFactory, parts) {
         const { request } = data
         const partsResourceInfo = getPartsResourceInfo(request, parts)
         if (partsResourceInfo) {
-          const { isSinglePartRequest, getRequestWithImplementation } = partsResourceInfo
+          const { isSinglePartRequest, isOptionalPartRequest, hasImplementation, getRequestWithImplementation } = partsResourceInfo
 
-          if (isSinglePartRequest) original({ ...data, request: getRequestWithImplementation() }, callback)
+          if (isSinglePartRequest || (backwardsCompatible && isOptionalPartRequest && hasImplementation))
+            original({ ...data, request: getRequestWithImplementation() }, callback)
           else {
             const result = {
               request, userRequest: request, rawRequest: request, resource: request,
-              loaders: [createPartLoader(partsResourceInfo)],
+              loaders: [{
+                loader: require.resolve('./part-loader'),
+                options: { partsResourceInfo },
+                backwardsCompatible
+              }],
               type: 'javascript/auto',
               parser: normalModuleFactory.getParser('javascript/auto'),
               generator: normalModuleFactory.getGenerator('javascript/auto'),
@@ -131,13 +136,6 @@ function addPartsResolver(normalModuleFactory, parts) {
           }
         } else  original(data, callback)
       } catch (e) { callback(e) }
-
-      function createPartLoader(partsResourceInfo) {
-        return {
-          loader: require.resolve('./part-loader'),
-          options: { partsResourceInfo } // make sure the loader knows what part is required
-        }
-      }
     }
   )
   normalModuleFactory.hooks.module.tap(name, (module, result) => {
@@ -215,6 +213,7 @@ function getPartsResourceInfo(request, parts) {
 
   const name = (isSinglePartRequest || isOptionalPartRequest || isAllPartsRequest)
   const part = name && (parts[name] || throwError(`No part declared with the name '${name}'`))
+  const hasImplementation = part && part.implementations.length
   return name &&
     {
       isSinglePartRequest,
@@ -223,8 +222,9 @@ function getPartsResourceInfo(request, parts) {
       name,
       resource,
       part,
+      hasImplementation,
       getRequestWithImplementation: () => {
-        if (!part.implementations.length) throwError(`No implementations available for part '${name}'`)
+        if (!hasImplementation) throwError(`No implementations available for part '${name}'`)
         const [implementation] = part.implementations.slice(-1)
         return request.replace(resource, implementation)
       }

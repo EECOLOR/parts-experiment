@@ -29,9 +29,17 @@ const results = [
   compare({ test: 'one-default' }, a),
   compare('one-test', test),
   compare({ key: { value: 'two-default' } }, b),
-  compare(null, c, c1),
-  compare({ test: 'one-default' }, d && d.default, d1 && d1.default),
-  compare('one-test', d && d.test, d1 && d1.test),
+  compare(undefined, c, c1),
+  ...(BACKWARDS_COMPATIBLE
+    ? [
+      compare({ test: 'one-default' }, d, d1),
+      compare('one-default', d && d.test, d1 && d1.test),
+    ]
+    : [
+      compare({ test: 'one-default' }, d && d.default, d1 && d1.default),
+      compare('one-test', d && d.test, d1 && d1.test),
+    ]
+  ),
   compare([{ default: { test: 'one-default' }, test: 'one-test' }], e.map(x => ({ ...x })), e1.map(x => ({ ...x }))),
   compare([], f, f1),
   compare([{ default: 'five-1' }, { default: 'five-2' }], g.map(x => ({ ...x })), g1.map(x => ({ ...x }))),
@@ -47,17 +55,18 @@ if (module.hot) {
 }
 
 function compare(...args) {
+  const X = Symbol('initial value')
   const { previous, ...rest } = args.reduce(
     (result, x) => {
       const { previous, versions } = result
       const prepared = prepare(x)
-      return !previous
+      return previous === X
         ? { previous: prepared, success: true, versions: [JSON.stringify(x, null, 2)] }
         : previous === prepared
         ? result
         : { previous, success: false, versions: [...versions, JSON.stringify(x, null, 2)] }
     },
-    { previous: null, success: true, versions: [] }
+    { previous: X, success: true, versions: [] }
   )
 
   return rest

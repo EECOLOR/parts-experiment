@@ -15,7 +15,7 @@ export default function App({ results }) {
       }
       {results.map(({ success, versions }, i) =>
         <div key={i} style={{ display: 'flex', flexDirection: 'row', color: success ? 'green' : 'red' }}>
-          {versions.map((x, i) => <pre key={i} style={{ margin: '20px' }}><code>{x}</code></pre>)}
+          {versions.map((x, i) => <pre key={i} style={{ margin: '20px' }}><code>{'' + x}</code></pre>)}
         </div>
       )}
     </div>
