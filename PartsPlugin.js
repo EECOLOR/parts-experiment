@@ -29,7 +29,7 @@ async function loadSanityParts(context) {
         {
           name: name && name.slice(5),
           implements: implements && implements.slice(5),
-          implementation: path,
+          path,
           source
         }
       ],
@@ -77,7 +77,7 @@ function PartsPlugin({
 
 async function resolveParts(parts, context) {
   return parts.reduce(
-    (result, { name, implements, type, implementation, source }) => {
+    (result, { name, implements, type, path: implementation, source }) => {
       if (name && result[name]) throwError(`Illegal definition of '${name}' in ${c(source)}, a part with this name was already defined in ${c(existingEntry.source)}`)
       if (implements && type) throwError(`Illegal property 'type' in implementation of '${implements}' in ${c(source)}`)
       if (implements && !implementation) throwError(`Missing property 'implementation' in implementation of '${implements}' in ${c(source)}'`)

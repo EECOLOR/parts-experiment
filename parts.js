@@ -3,7 +3,7 @@ module.exports = [
   {
     name: 'one',
     type: './src/one.d.ts',
-    implementation: './src/one.js'
+    path: './src/one.js'
   },
   {
     name: 'two',
@@ -11,7 +11,7 @@ module.exports = [
   },
   {
     implements: 'two',
-    implementation: './src/two.js'
+    path: './src/two.js'
   },
   {
     name: 'three',
@@ -23,24 +23,24 @@ module.exports = [
   },
   {
     implements: 'five',
-    implementation: './src/five-1.js'
+    path: './src/five-1.js'
   },
   {
     implements: 'five',
-    implementation: './src/five-2.js'
+    path: './src/five-2.js'
   },
   {
     name: 'document',
     type: './src/Document.d.ts',
-    implementation: './src/DefaultDocument.js'
+    path: './src/DefaultDocument.js'
   },
   {
     name: 'color',
-    implementation: './src/DefaultColor.css'
+    path: './src/DefaultColor.css'
   },
   {
     name: 'green',
-    implementation: './src/green.css'
+    path: './src/green.css'
   },
   {
     name: 'purple',
@@ -48,6 +48,6 @@ module.exports = [
   {
     implements: 'purple',
     name: 'purple-default',
-    implementation: './src/purple.css'
+    path: './src/purple.css'
   }
 ]
