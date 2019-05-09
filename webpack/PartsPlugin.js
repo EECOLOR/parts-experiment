@@ -12,11 +12,6 @@ module.exports = PartsPlugin
 const name = 'PartsPlugin'
 const partsParamName = `${name} - parts`
 
-async function loadPartsJs(context) {
-  const source = resolve('./parts', context)
-  // TODO: resolve from plugins
-  return importFresh(source).map(x => ({ ...x, source }))
-}
 async function loadSanityParts(context) {
   const source = resolve('./sanity.json', context)
   // TODO: resolve from plugins - resolve from defined paths
@@ -27,22 +22,30 @@ async function loadSanityParts(context) {
       (result, { name, implements, path }) => [
         ...result,
         {
-          name: name && name.slice(5),
-          implements: implements && implements.slice(5),
+          name: name && getPartname(name, source),
+          implements: implements && getPartname(implements, source),
           path,
           source
         }
       ],
       []
     )
+
+  function getPartname(name, source) {
+    return name.startsWith('part:')
+      ? name.slice(5)
+      : throwError(`Part '${name}' should be renamed to 'part:${name}' (defined in ${source})`)
+  }
 }
+
 
 PartsPlugin.getResolve = getResolve
 function PartsPlugin({
   generateTypeDefinitionFiles = false,
-  backwardsCompatible = true,
-  loadParts = backwardsCompatible ? loadSanityParts : loadPartsJs
-} = {}) {
+  loadParts = loadSanityParts,
+  optional_allowEsModule, // see part-loader for details
+  all_onlyDefaultWhenEsModule,
+}) {
   return {
     apply: compiler => {
       let partsToEmit
@@ -63,7 +66,7 @@ function PartsPlugin({
       }
 
       function compilation(compilation, { normalModuleFactory, [partsParamName]: parts }) {
-        addPartsResolver(normalModuleFactory, parts, backwardsCompatible)
+        addPartsResolver(normalModuleFactory, parts, optional_allowEsModule, all_onlyDefaultWhenEsModule)
         addGetPartsResourceInfoToLoaderContext(compilation, parts)
         providePartsToChildCompilers(compilation, parts)
       }
@@ -106,7 +109,7 @@ async function resolveParts(parts, context) {
 
 function resolve(path, context) { return require.resolve(path, { paths: [context] }) }
 
-function addPartsResolver(normalModuleFactory, parts, backwardsCompatible) {
+function addPartsResolver(normalModuleFactory, parts, optional_allowEsModule, all_onlyDefaultWhenEsModule) {
   normalModuleFactory.hooks.resolver.tap(
     name,
     original => async (data, callback) => {
@@ -116,14 +119,14 @@ function addPartsResolver(normalModuleFactory, parts, backwardsCompatible) {
         if (partsResourceInfo) {
           const { isSinglePartRequest, isOptionalPartRequest, hasImplementation, getRequestWithImplementation } = partsResourceInfo
 
-          if (isSinglePartRequest || (backwardsCompatible && isOptionalPartRequest && hasImplementation))
+          if (isSinglePartRequest || (optional_allowEsModule && isOptionalPartRequest && hasImplementation))
             original({ ...data, request: getRequestWithImplementation() }, callback)
           else {
             const result = {
               request, userRequest: request, rawRequest: request, resource: request,
               loaders: [{
                 loader: require.resolve('./part-loader'),
-                options: { partsResourceInfo, backwardsCompatible },
+                options: { partsResourceInfo, all_onlyDefaultWhenEsModule, optional_allowEsModule },
               }],
               type: 'javascript/auto',
               parser: normalModuleFactory.getParser('javascript/auto'),

@@ -6,7 +6,7 @@ module.exports = {
       isOptionalPartRequest,
       isAllPartsRequest
     } = this.query.partsResourceInfo
-    const { backwardsCompatible } = this.query
+    const { all_onlyDefaultWhenEsModule, optional_allowEsModule } = this.query
 
     const [implementation] = implementations.slice(-1)
 
@@ -15,13 +15,13 @@ module.exports = {
 
     const result = isPartRequest
       ? throwError(`part: requests should not be handled by the part-loader`)
-      : backwardsCompatible && isOptionalPartRequest && implementation
+      : optional_allowEsModule && isOptionalPartRequest && implementation
       ? throwError('The matrix has changed, this is not a situation that should be possible. Somehow an optional part with implementation was passed to the loader.')
       : isOptionalPartRequest && implementation
       ? `module.exports = { ...require('${r(implementation)}') }; // ${resource}` // *
       : isOptionalPartRequest
       ? `module.exports = undefined; // ${resource}`
-      : backwardsCompatible && isAllPartsRequest
+      : all_onlyDefaultWhenEsModule && isAllPartsRequest
       ? `module.exports = [${implementations.map(x => `require('${r(x)}')`).join(', ')}]
           .map(x => x && x.__esModule ? x['default'] : x) // ${resource}`
       : isAllPartsRequest
