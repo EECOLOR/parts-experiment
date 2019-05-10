@@ -1,9 +1,8 @@
+const createMultiConfig = require('./webpack/multi-config')
 const express = require('express')
-const webpack = require('webpack')
-const path = require('path')
-const createWebConfig = require('./webpack/web-config')
-const createNodeConfig = require('./webpack/node-config')
 const importFresh = require('import-fresh')
+const path = require('path')
+const webpack = require('webpack')
 
 // This is a conscious choice over webpack-dev-server, ask me if you want to know (I hope I will still remember, haha)
 const createWebpackHotMiddleware = require('webpack-hot-middleware')
@@ -12,32 +11,27 @@ const createWebpackDevMiddleware = require('webpack-dev-middleware')
 const isProduction = process.env.NODE_ENV === 'production'
 if (isProduction) throw new Error('production mode currently not supported by serve')
 
+// get these from config
 const outputPath = path.resolve(__dirname, 'dist')
 const publicPath = '/test/'
 const compatibility = {
   optional_allowEsModule: true,
   all_onlyDefaultWhenEsModule: true,
 }
+
 const hotReloadEventPath = `${publicPath}__webpack_hmr`
 const hotReloadClient = `webpack-hot-middleware/client?path=${hotReloadEventPath}`
 
-const fullConfig = [
-  createWebConfig({
-    isProduction,
-    publicPath,
-    outputPath,
-    compatibility,
-    entry: { client: ['./src/index.js'].concat(isProduction ? [] : [hotReloadClient]) },
-  }),
-  createNodeConfig({
-    isProduction,
-    outputPath,
-    compatibility,
-    entry: { ['index.html']: './src/index.html.js' }
-  })
-]
+const multiConfig = createMultiConfig({
+  isProduction,
+  publicPath,
+  outputPath,
+  compatibility,
+  webEntry: { client: ['./src/index.js'].concat(isProduction ? [] : [hotReloadClient]) },
+  nodeEntry: { ['index.html']: './src/index.html.js' },
+})
 
-const multiCompiler = webpack(fullConfig)
+const multiCompiler = webpack(multiConfig)
 const [clientCompiler] = multiCompiler.compilers
 const webpackDevMiddleware = !isProduction && createWebpackDevMiddleware(
   multiCompiler,
