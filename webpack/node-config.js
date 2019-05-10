@@ -27,19 +27,6 @@ module.exports = function createNodeConfig({
     plugins: [
       PartsPlugin({ generateTypeDefinitionFiles: true, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
       new DefinePlugin({ PARTS_COMPATIBILITY: JSON.stringify(compatibility) }),
-      // {
-      //   apply: compiler => {
-      //     compiler.hooks.entryOption.tap('https://github.com/webpack/webpack-dev-server/pull/1775', (context, entry) => {
-      //       Object.entries(entry).forEach(([key, value]) => {
-      //         entry[key] = value // overwrite the entry to remove the added client
-      //       })
-      //     })
-      //   }
-      // },
-      // { // fake HMR plugin to prevent it from being injected by webpack dev server
-      //   constructor: HotModuleReplacementPlugin,
-      //   apply: () => {}
-      // }
     ]
   }
 }
