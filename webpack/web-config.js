@@ -34,7 +34,7 @@ module.exports = function createWebConfig({
       ...css.plugins,
       new ManifestPlugin(),
       !isProduction && new HotModuleReplacementPlugin(),
-      new DefinePlugin({ PARTS_COMPATIBILITY: JSON.stringify(compatibility) }) // only for testing
+      new DefinePlugin({ PARTS_COMPATIBILITY: JSON.stringify(compatibility) }),
     ].filter(Boolean),
   }
 }

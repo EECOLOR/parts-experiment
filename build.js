@@ -6,13 +6,7 @@ const webpack = require('webpack')
 const isProduction = process.env.NODE_ENV === 'production'
 if (!isProduction) throw new Error('non-production mode currently not supported by build')
 
-// get these from config
-const outputPath = path.resolve(__dirname, 'dist')
-const publicPath = '/test/'
-const compatibility = {
-  optional_allowEsModule: true,
-  all_onlyDefaultWhenEsModule: true,
-}
+const { outputPath, publicPath, compatibility } = require('./fakeConfig')
 
 const multiConfig = createMultiConfig({
   isProduction,

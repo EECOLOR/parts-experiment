@@ -6,6 +6,7 @@
   "scripts": {
     "build": "$npm_execpath run clean;NODE_ENV=production node build.js",
     "start": "$npm_execpath run clean;NODE_ENV=development node serve.js",
+    "exec" : "rm .tmp/ -R;node exec.js",
     "clean": "rm dist/ -R;rm .partTypes/ -R"
   },
   "devDependencies": {

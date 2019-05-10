@@ -11,13 +11,7 @@ const createWebpackDevMiddleware = require('webpack-dev-middleware')
 const isProduction = process.env.NODE_ENV === 'production'
 if (isProduction) throw new Error('production mode currently not supported by serve')
 
-// get these from config
-const outputPath = path.resolve(__dirname, 'dist')
-const publicPath = '/test/'
-const compatibility = {
-  optional_allowEsModule: true,
-  all_onlyDefaultWhenEsModule: true,
-}
+const { outputPath, publicPath, compatibility } = require('./fakeConfig')
 
 const hotReloadEventPath = `${publicPath}__webpack_hmr`
 const hotReloadClient = `webpack-hot-middleware/client?path=${hotReloadEventPath}`
