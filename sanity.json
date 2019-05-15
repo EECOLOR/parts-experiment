@@ -56,6 +56,18 @@
       "name": "part:purple-default",
       "implements": "part:purple",
       "path": "./src/purple.css"
+    },
+    {
+      "name": "part:story",
+      "path": "./src/Button.story.js"
+    },
+    {
+      "implements": "part:story",
+      "path": "./src/Button2.story.js"
+    },
+    {
+      "name": "part:button",
+      "path": "./src/Button2.js"
     }
   ]
 }

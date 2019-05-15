@@ -4,18 +4,18 @@ const createJsConfig = require('./js')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const PartsPlugin = require('./PartsPlugin')
 
-module.exports = function createWebConfig({
+module.exports = {
+  createWebConfig,
+  createModuleAndPlugins,
+}
+
+function createWebConfig({
   isProduction,
   publicPath,
   outputPath,
   compatibility,
   entry,
 }) {
-  const { optional_allowEsModule, all_onlyDefaultWhenEsModule } = compatibility
-
-  const css = createCssConfig(isProduction)
-  const js = createJsConfig()
-
   return {
     mode: isProduction ? 'production' : 'development',
     target: 'web',
@@ -25,6 +25,17 @@ module.exports = function createWebConfig({
       filename: '[name].[hash].js',
       path: outputPath
     },
+    ...createModuleAndPlugins({ compatibility, isProduction }),
+  }
+}
+
+function createModuleAndPlugins({ compatibility, isProduction }) {
+
+  const { optional_allowEsModule, all_onlyDefaultWhenEsModule } = compatibility
+  const css = createCssConfig(isProduction)
+  const js = createJsConfig()
+
+  return {
     module: { rules: [
       { test: /\.js$/, exclude: /node_modules/, use: js.loaders },
       { test: /\.css$/, exclude: /node_modules/, use: css.loaders }

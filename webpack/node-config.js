@@ -3,7 +3,11 @@ const createJsConfig = require('./js')
 const nodeExternals = require('webpack-node-externals')
 const PartsPlugin = require('./PartsPlugin')
 
-module.exports = function createNodeConfig({
+module.exports = {
+  createNodeConfig
+}
+
+function createNodeConfig({
   isProduction,
   outputPath,
   compatibility,
