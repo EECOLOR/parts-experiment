@@ -1,4 +1,4 @@
-const createMultiConfig = require('./webpack/multi-config')
+const { createMultiConfig } = require('./webpack').multiConfig
 const express = require('express')
 const importFresh = require('import-fresh')
 const path = require('path')

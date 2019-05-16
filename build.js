@@ -1,4 +1,4 @@
-const createMultiConfig = require('./webpack/multi-config')
+const { createMultiConfig } = require('./webpack').multiConfig
 const fs = require('fs-extra')
 const path = require('path')
 const webpack = require('webpack')

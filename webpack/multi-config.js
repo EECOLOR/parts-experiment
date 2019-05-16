@@ -1,7 +1,11 @@
 const { createWebConfig } = require('./web-config')
 const { createNodeConfig } = require('./node-config')
 
-module.exports = function createMultiConfig({
+module.exports = {
+  createMultiConfig
+}
+
+function createMultiConfig({
   isProduction,
   publicPath,
   outputPath,
