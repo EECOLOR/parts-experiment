@@ -1,5 +1,5 @@
 const ExtractCssChunks = require('mini-css-extract-plugin')
-const PartsPlugin = require('./PartsPlugin')
+const PartsPlugin = require('../plugins/PartsPlugin')
 
 module.exports = isProduction => ({
   loaders: [

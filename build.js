@@ -1,4 +1,5 @@
 const { createMultiConfig } = require('./webpack').multiConfig
+const { loadSanityParts } = require('./resolver')
 const fs = require('fs-extra')
 const path = require('path')
 const webpack = require('webpack')
@@ -15,6 +16,8 @@ const multiConfig = createMultiConfig({
   compatibility,
   webEntry: { client: './src/index.js' },
   nodeEntry: { ['index.html']: './src/index.html.js' },
+  loadParts: loadSanityParts,
+  generateTypeDefinitionFiles: false,
 })
 
 webpack(

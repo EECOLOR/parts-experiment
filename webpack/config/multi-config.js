@@ -12,6 +12,8 @@ function createMultiConfig({
   compatibility,
   webEntry,
   nodeEntry,
+  loadParts,
+  generateTypeDefinitionFiles,
 }) {
   return [
     createWebConfig({
@@ -20,12 +22,15 @@ function createMultiConfig({
       outputPath,
       compatibility,
       entry: webEntry,
+      loadParts,
     }),
     createNodeConfig({
       isProduction,
       outputPath,
       compatibility,
       entry: nodeEntry,
+      loadParts,
+      generateTypeDefinitionFiles,
     })
   ]
 }

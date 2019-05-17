@@ -1,4 +1,5 @@
 const { createNodeConfig } = require('./webpack').nodeConfig
+const { loadSanityParts } = require('./resolver')
 const path = require('path')
 const webpack = require('webpack')
 
@@ -13,6 +14,8 @@ const config = createNodeConfig({
   outputPath,
   compatibility,
   entry: { ['index']: path.resolve(process.cwd(), script) },
+  loadParts: loadSanityParts,
+  generateTypeDefinitionFiles: false,
 })
 
 webpack(

@@ -1,7 +1,7 @@
 const { DefinePlugin } = require('webpack')
 const createJsConfig = require('./js')
 const nodeExternals = require('webpack-node-externals')
-const PartsPlugin = require('./PartsPlugin')
+const PartsPlugin = require('../plugins/PartsPlugin')
 
 module.exports = {
   createNodeConfig
@@ -12,6 +12,8 @@ function createNodeConfig({
   outputPath,
   compatibility,
   entry,
+  loadParts,
+  generateTypeDefinitionFiles,
 }) {
   const { optional_allowEsModule, all_onlyDefaultWhenEsModule } = compatibility
 
@@ -27,9 +29,10 @@ function createNodeConfig({
       path: outputPath,
       libraryTarget: 'commonjs'
     },
+    // TODO: we should probably test for plugins
     module: { rules: [{ test: /\.js$/, exclude: /node_modules/, use: js.loaders }] },
     plugins: [
-      PartsPlugin({ generateTypeDefinitionFiles: true, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
+      PartsPlugin({ loadParts, generateTypeDefinitionFiles, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
       new DefinePlugin({ PARTS_COMPATIBILITY: JSON.stringify(compatibility) }),
     ]
   }

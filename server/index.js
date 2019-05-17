@@ -10,12 +10,8 @@
  * that would become possible if we export other methods.
  */
 
-const { createWebConfig, createModuleAndPlugins } = require('./config/web-config')
-const { createMultiConfig } = require('./config/multi-config')
-const { createNodeConfig } = require('./config/node-config')
+const { createDevServer } = require('./createDevServer')
 
- module.exports = {
-   webConfig: { createWebConfig, createModuleAndPlugins },
-   multiConfig: { createMultiConfig },
-   nodeConfig: { createNodeConfig }
- }
+module.exports = {
+  createDevServer,
+}

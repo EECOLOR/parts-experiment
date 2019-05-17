@@ -1,24 +1,28 @@
 {
   "parts": [
     {
-      "name": "part:one"
+      "name": "part:one",
+      "type": "./src/one.d.ts"
     },
     {
       "implements": "part:one",
       "path": "./src/one.js"
     },
     {
-      "name": "part:two"
+      "name": "part:two",
+      "type": "./src/two.d.ts"
     },
     {
       "implements": "part:two",
       "path": "./src/two.js"
     },
     {
-      "name": "part:three"
+      "name": "part:three",
+      "type": "./src/three.d.ts"
     },
     {
-      "name": "part:five"
+      "name": "part:five",
+      "type": "./src/five.d.ts"
     },
     {
       "implements": "part:five",
@@ -29,7 +33,8 @@
       "path": "./src/five-2.js"
     },
     {
-      "name": "part:document"
+      "name": "part:document",
+      "type": "./src/Document.d.ts"
     },
     {
       "implements": "part:document",

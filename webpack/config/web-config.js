@@ -2,7 +2,7 @@ const { HotModuleReplacementPlugin, DefinePlugin } = require('webpack')
 const createCssConfig = require('./css')
 const createJsConfig = require('./js')
 const ManifestPlugin = require('webpack-manifest-plugin')
-const PartsPlugin = require('./PartsPlugin')
+const PartsPlugin = require('../plugins/PartsPlugin')
 
 module.exports = {
   createWebConfig,
@@ -15,6 +15,7 @@ function createWebConfig({
   outputPath,
   compatibility,
   entry,
+  loadParts,
 }) {
   return {
     mode: isProduction ? 'production' : 'development',
@@ -25,11 +26,11 @@ function createWebConfig({
       filename: '[name].[hash].js',
       path: outputPath
     },
-    ...createModuleAndPlugins({ compatibility, isProduction }),
+    ...createModuleAndPlugins({ loadParts, compatibility, isProduction }),
   }
 }
 
-function createModuleAndPlugins({ compatibility, isProduction }) {
+function createModuleAndPlugins({ loadParts, compatibility, isProduction }) {
 
   const { optional_allowEsModule, all_onlyDefaultWhenEsModule } = compatibility
   const css = createCssConfig(isProduction)
@@ -37,11 +38,12 @@ function createModuleAndPlugins({ compatibility, isProduction }) {
 
   return {
     module: { rules: [
+      // TODO: we should probably test for plugins
       { test: /\.js$/, exclude: /node_modules/, use: js.loaders },
       { test: /\.css$/, exclude: /node_modules/, use: css.loaders }
     ]},
     plugins: [
-      PartsPlugin({ optional_allowEsModule, all_onlyDefaultWhenEsModule }),
+      PartsPlugin({ loadParts, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
       ...css.plugins,
       new ManifestPlugin(),
       !isProduction && new HotModuleReplacementPlugin(),
