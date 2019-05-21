@@ -11,6 +11,7 @@ module.exports = {
 
 function createWebConfig({
   isProduction,
+  basePath,
   publicPath,
   outputPath,
   compatibility,
@@ -20,6 +21,7 @@ function createWebConfig({
   return {
     mode: isProduction ? 'production' : 'development',
     target: 'web',
+    context: basePath,
     entry,
     output: {
       publicPath,

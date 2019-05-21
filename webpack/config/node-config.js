@@ -9,6 +9,7 @@ module.exports = {
 
 function createNodeConfig({
   isProduction,
+  basePath,
   outputPath,
   compatibility,
   entry,
@@ -22,6 +23,7 @@ function createNodeConfig({
   return {
     mode: isProduction ? 'production' : 'development',
     target: 'node',
+    context: basePath,
     externals: [nodeExternals()],
     entry,
     output: {

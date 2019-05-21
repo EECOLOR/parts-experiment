@@ -12,6 +12,7 @@ module.exports = { createDevServer }
 
 function createDevServer({
   isProduction,
+  basePath,
   publicPath,
   outputPath,
   compatibility,
@@ -22,6 +23,7 @@ function createDevServer({
 
   const multiConfig = createMultiConfig({
     isProduction,
+    basePath,
     publicPath,
     outputPath,
     compatibility,

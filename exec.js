@@ -6,11 +6,12 @@ const webpack = require('webpack')
 const isProduction = process.env.NODE_ENV === 'production'
 const [,, script] = process.argv
 
-const { compatibility } = require('./fakeConfig')
+const { compatibility, basePath } = require('./fakeConfig')
 const outputPath = path.resolve(__dirname, '.tmp')
 
 const config = createNodeConfig({
   isProduction,
+  basePath,
   outputPath,
   compatibility,
   entry: { ['index']: path.resolve(process.cwd(), script) },

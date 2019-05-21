@@ -1,6 +1,7 @@
 const path = require('path')
 
 module.exports = {
+  basePath: path.resolve(__dirname),
   outputPath: path.resolve(__dirname, 'dist'),
   publicPath: '/test/',
   compatibility: {
