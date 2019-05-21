@@ -49,6 +49,7 @@ function createModuleAndPlugins({ loadParts, compatibility, isProduction, baseCo
     plugins: [
       PartsPlugin({ loadParts, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
       ConfigResolverPlugin({ baseConfigName }),
+      // TODO: VersionResolverPlugin - @sanity/util - getSanityVersions,
       ...css.plugins,
       new ManifestPlugin(),
       !isProduction && new HotModuleReplacementPlugin(),

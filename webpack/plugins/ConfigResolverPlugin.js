@@ -29,6 +29,7 @@ function addConfigResolver(normalModuleFactory, context, baseConfigName) {
       if (configMatch) {
         const [, configRequest] = configMatch
         const configBasePath = configRequest === baseConfigName ? context : configContext
+        // TODO: @sanity/util - reduceConfig (probably using a loader)
         original({ ...data, request: path.join(configBasePath, `${configRequest}.json`) }, callback)
       } else  original(data, callback)
     }

@@ -38,6 +38,7 @@ function createNodeConfig({
     plugins: [
       PartsPlugin({ loadParts, generateTypeDefinitionFiles, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
       ConfigResolverPlugin({ baseConfigName }),
+      // TODO: VersionResolverPlugin - @sanity/util - getSanityVersions,
       new DefinePlugin({ PARTS_COMPATIBILITY: JSON.stringify(compatibility) }),
     ]
   }

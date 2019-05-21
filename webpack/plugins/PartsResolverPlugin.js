@@ -27,6 +27,9 @@ function addPartsResolver(normalModuleFactory, parts, optional_allowEsModule, al
     original => async (data, callback) => {
       try { // if you return a promise to a function that does not expect one, make sure it always completes without loosing errors
         const { request } = data
+
+        // TODO: sanity:debug - should return the parts in a backwards compatible fashion (see /sanity/packages/@sanity/storybook/src/addons/sanity/Sanity.js)
+
         const partsResourceInfo = getPartsResourceInfo(request, parts)
         if (partsResourceInfo) {
           const { isSinglePartRequest, isOptionalPartRequest, hasImplementation, getRequestWithImplementation } = partsResourceInfo
