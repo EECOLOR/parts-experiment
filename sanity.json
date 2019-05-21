@@ -1,4 +1,16 @@
 {
+  "root": true,
+
+  "project": {
+    "/* basePath should probably be named to 'publicPath' to be consistent with tools like webpack */": "",
+    "basePath": "/test/"
+  },
+
+  "compatibility": {
+    "optional_allowEsModule": true,
+    "all_onlyDefaultWhenEsModule": true
+  },
+
   "parts": [
     {
       "name": "part:one",

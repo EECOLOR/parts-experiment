@@ -24,6 +24,12 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
 
+import sanityConfig from 'config:sanity'
+import testConfig from 'config:test'
+
+console.log(sanityConfig)
+console.log(testConfig)
+
 console.log('-- Running tests from index.js --')
 const results = [
   compare({ test: 'one-default' }, a),

@@ -1,5 +1,5 @@
+const { createConfig } = require('./config')
 const { createMultiConfig } = require('./webpack').multiConfig
-const { loadSanityParts } = require('./resolver')
 const fs = require('fs-extra')
 const path = require('path')
 const webpack = require('webpack')
@@ -7,17 +7,19 @@ const webpack = require('webpack')
 const isProduction = process.env.NODE_ENV === 'production'
 if (!isProduction) throw new Error('non-production mode currently not supported by build')
 
-const { outputPath, publicPath, compatibility, basePath } = require('./fakeConfig')
+const { outputPath, publicPath, compatibility, context, baseConfigName, loadParts } =
+  createConfig({ context: process.cwd() })
 
 const multiConfig = createMultiConfig({
   isProduction,
-  basePath,
+  context,
+  baseConfigName,
   publicPath,
   outputPath,
   compatibility,
   webEntry: { client: './src/index.js' },
   nodeEntry: { ['index.html']: './src/index.html.js' },
-  loadParts: loadSanityParts,
+  loadParts,
   generateTypeDefinitionFiles: false,
 })
 

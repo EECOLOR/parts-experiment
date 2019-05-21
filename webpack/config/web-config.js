@@ -1,6 +1,7 @@
 const { HotModuleReplacementPlugin, DefinePlugin } = require('webpack')
 const createCssConfig = require('./css')
 const createJsConfig = require('./js')
+const ConfigResolverPlugin = require('../plugins/ConfigResolverPlugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const PartsPlugin = require('../plugins/PartsPlugin')
 
@@ -11,7 +12,8 @@ module.exports = {
 
 function createWebConfig({
   isProduction,
-  basePath,
+  context,
+  baseConfigName,
   publicPath,
   outputPath,
   compatibility,
@@ -21,18 +23,18 @@ function createWebConfig({
   return {
     mode: isProduction ? 'production' : 'development',
     target: 'web',
-    context: basePath,
+    context,
     entry,
     output: {
       publicPath,
       filename: '[name].[hash].js',
       path: outputPath
     },
-    ...createModuleAndPlugins({ loadParts, compatibility, isProduction }),
+    ...createModuleAndPlugins({ loadParts, compatibility, isProduction, baseConfigName }),
   }
 }
 
-function createModuleAndPlugins({ loadParts, compatibility, isProduction }) {
+function createModuleAndPlugins({ loadParts, compatibility, isProduction, baseConfigName }) {
 
   const { optional_allowEsModule, all_onlyDefaultWhenEsModule } = compatibility
   const css = createCssConfig(isProduction)
@@ -46,6 +48,7 @@ function createModuleAndPlugins({ loadParts, compatibility, isProduction }) {
     ]},
     plugins: [
       PartsPlugin({ loadParts, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
+      ConfigResolverPlugin({ baseConfigName }),
       ...css.plugins,
       new ManifestPlugin(),
       !isProduction && new HotModuleReplacementPlugin(),

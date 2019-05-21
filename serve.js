@@ -1,18 +1,20 @@
-const { loadSanityParts } = require('./resolver')
+const { createConfig } = require('./config')
 const { createDevServer } = require('./server')
 
 const isProduction = process.env.NODE_ENV === 'production'
 if (isProduction) throw new Error('production mode currently not supported by serve')
 
-const { outputPath, publicPath, compatibility, basePath } = require('./fakeConfig')
+const { outputPath, publicPath, compatibility, context, baseConfigName, loadParts } =
+  createConfig({ context: process.cwd() })
 
 const app = createDevServer({
   isProduction,
-  basePath,
+  context,
+  baseConfigName,
   outputPath,
   publicPath,
   compatibility,
-  loadParts: loadSanityParts,
+  loadParts,
 })
 
 app.listen(8080)

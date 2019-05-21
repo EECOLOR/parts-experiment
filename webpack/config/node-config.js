@@ -1,6 +1,7 @@
 const { DefinePlugin } = require('webpack')
 const createJsConfig = require('./js')
 const nodeExternals = require('webpack-node-externals')
+const ConfigResolverPlugin = require('../plugins/ConfigResolverPlugin')
 const PartsPlugin = require('../plugins/PartsPlugin')
 
 module.exports = {
@@ -9,7 +10,8 @@ module.exports = {
 
 function createNodeConfig({
   isProduction,
-  basePath,
+  context,
+  baseConfigName,
   outputPath,
   compatibility,
   entry,
@@ -23,7 +25,7 @@ function createNodeConfig({
   return {
     mode: isProduction ? 'production' : 'development',
     target: 'node',
-    context: basePath,
+    context,
     externals: [nodeExternals()],
     entry,
     output: {
@@ -35,6 +37,7 @@ function createNodeConfig({
     module: { rules: [{ test: /\.js$/, exclude: /node_modules/, use: js.loaders }] },
     plugins: [
       PartsPlugin({ loadParts, generateTypeDefinitionFiles, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
+      ConfigResolverPlugin({ baseConfigName }),
       new DefinePlugin({ PARTS_COMPATIBILITY: JSON.stringify(compatibility) }),
     ]
   }

@@ -12,11 +12,4 @@
 
 const { loadParts } = require('./loadParts')
 
-module.exports = {
-  loadParts,
-  loadSanityParts: context => loadParts({
-    context,
-    configFileName: 'sanity.json',
-    pluginPackagePrefix: 'sanity-plugin-'
-  }),
-}
+module.exports = { loadParts }

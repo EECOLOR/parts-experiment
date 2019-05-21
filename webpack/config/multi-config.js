@@ -7,7 +7,8 @@ module.exports = {
 
 function createMultiConfig({
   isProduction,
-  basePath,
+  context,
+  baseConfigName,
   publicPath,
   outputPath,
   compatibility,
@@ -19,7 +20,8 @@ function createMultiConfig({
   return [
     createWebConfig({
       isProduction,
-      basePath,
+      context,
+      baseConfigName,
       publicPath,
       outputPath,
       compatibility,
@@ -28,7 +30,8 @@ function createMultiConfig({
     }),
     createNodeConfig({
       isProduction,
-      basePath,
+      context,
+      baseConfigName,
       outputPath,
       compatibility,
       entry: nodeEntry,

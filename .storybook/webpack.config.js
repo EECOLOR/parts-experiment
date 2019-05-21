@@ -1,4 +1,4 @@
-const { compatibility, basePath } = require('../fakeConfig')
+const { compatibility, context } = require('../createConfig')
 const { createModuleAndPlugins } = require('../webpack').webConfig
 const { loadSanityParts } = require('../resolver')
 
@@ -7,11 +7,12 @@ module.exports = function adjustWebpackConfig({ config }) {
     isProduction: false,
     compatibility,
     loadParts: loadSanityParts,
+    baseConfigName: 'sanity',
   })
 
   return {
     ...config,
-    context: basePath,
+    context,
     module,
     plugins: [...config.plugins, ...plugins]
   }

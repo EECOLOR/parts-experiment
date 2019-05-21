@@ -1,21 +1,22 @@
+const { createConfig } = require('./config')
 const { createNodeConfig } = require('./webpack').nodeConfig
-const { loadSanityParts } = require('./resolver')
 const path = require('path')
 const webpack = require('webpack')
 
 const isProduction = process.env.NODE_ENV === 'production'
 const [,, script] = process.argv
 
-const { compatibility, basePath } = require('./fakeConfig')
+const { compatibility, context, baseConfigName, loadParts } = createConfig({ context: process.cwd() })
 const outputPath = path.resolve(__dirname, '.tmp')
 
 const config = createNodeConfig({
   isProduction,
-  basePath,
+  context,
+  baseConfigName,
   outputPath,
   compatibility,
   entry: { ['index']: path.resolve(process.cwd(), script) },
-  loadParts: loadSanityParts,
+  loadParts,
   generateTypeDefinitionFiles: false,
 })
 
