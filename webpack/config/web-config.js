@@ -14,7 +14,7 @@ module.exports = {
 function createWebConfig({
   isProduction,
   context,
-  baseConfigName,
+  config,
   productName,
   publicPath,
   outputPath,
@@ -32,11 +32,11 @@ function createWebConfig({
       filename: '[name].[hash].js',
       path: outputPath
     },
-    ...createModuleAndPlugins({ loadParts, compatibility, isProduction, baseConfigName, productName }),
+    ...createModuleAndPlugins({ loadParts, compatibility, isProduction, config, productName }),
   }
 }
 
-function createModuleAndPlugins({ loadParts, compatibility, isProduction, baseConfigName, productName }) {
+function createModuleAndPlugins({ loadParts, compatibility, isProduction, config, productName }) {
 
   const { optional_allowEsModule, all_onlyDefaultWhenEsModule } = compatibility
   const css = createCssConfig(isProduction)
@@ -50,7 +50,7 @@ function createModuleAndPlugins({ loadParts, compatibility, isProduction, baseCo
     ]},
     plugins: [
       PartsPlugin({ loadParts, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
-      ConfigResolverPlugin({ baseConfigName }),
+      ConfigResolverPlugin({ config, productName }),
       VersionResolverPlugin({ productName }),
       ...css.plugins,
       new ManifestPlugin(),

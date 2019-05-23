@@ -1,19 +1,19 @@
-const { compatibility, context } = require('../createConfig')
+const { createConfig } = require('../config')
 const { createModuleAndPlugins } = require('../webpack').webConfig
 const { loadSanityParts } = require('../resolver')
+const path = require('path')
 
 module.exports = function adjustWebpackConfig({ config }) {
+  const sanityConfig = createConfig({ defaultContext: path.resolve(__dirname, '../') })
+
   const { module, plugins } = createModuleAndPlugins({
     isProduction: false,
-    compatibility,
-    loadParts: loadSanityParts,
-    baseConfigName: 'sanity',
-    productName: 'sanity',
+    ...sanityConfig
   })
 
   return {
     ...config,
-    context,
+    context: sanityConfig.context,
     module,
     plugins: [...config.plugins, ...plugins]
   }

@@ -1,4 +1,5 @@
 const { partsParamName } = require('./PartsProviderPlugin')
+const { resolveWithoutFile } = require('./utils')
 
 const name = 'PartsResolverPlugin'
 
@@ -22,43 +23,20 @@ function PartsResolverPlugin({
 }
 
 function addPartsResolver(normalModuleFactory, parts, optional_allowEsModule, all_onlyDefaultWhenEsModule) {
-  normalModuleFactory.hooks.resolver.tap(
+  // TODO: sanity:debug - should return the parts in a backwards compatible fashion (see /sanity/packages/@sanity/storybook/src/addons/sanity/Sanity.js)
+
+  resolveWithoutFile({
     name,
-    original => async (data, callback) => {
-      try { // if you return a promise to a function that does not expect one, make sure it always completes without loosing errors
-        const { request } = data
-        // TODO: sanity:debug - should return the parts in a backwards compatible fashion (see /sanity/packages/@sanity/storybook/src/addons/sanity/Sanity.js)
-
-        const partsResourceInfo = getPartsResourceInfo(request, parts)
-        if (partsResourceInfo) {
-          const { isSinglePartRequest, isOptionalPartRequest, hasImplementation, getRequestWithImplementation } = partsResourceInfo
-
-          if (isSinglePartRequest || (optional_allowEsModule && isOptionalPartRequest && hasImplementation))
-            original({ ...data, request: getRequestWithImplementation() }, callback)
-          else {
-            const result = {
-              request, userRequest: request, rawRequest: request, resource: request,
-              loaders: [{
-                loader: require.resolve('../loaders/part-loader'),
-                options: { partsResourceInfo, all_onlyDefaultWhenEsModule, optional_allowEsModule },
-              }],
-              type: 'javascript/auto',
-              parser: normalModuleFactory.getParser('javascript/auto'),
-              generator: normalModuleFactory.getGenerator('javascript/auto'),
-              resolveOptions: { isPartLoaderRequest: true },
-              settings: {},
-              context: data.context,
-            }
-            callback(null, result)
-          }
-        } else  original(data, callback)
-      } catch (e) { callback(e) }
-    }
-  )
-  normalModuleFactory.hooks.module.tap(name, (module, result) => {
-    // context of a normal module is extracted from the request, so we need to adjust it
-    if (result.resolveOptions && result.resolveOptions.isPartLoaderRequest)
-      module.context = result.context
+    normalModuleFactory,
+    getRequestData: request => getPartsResourceInfo(request, parts),
+    getNewRequest: x => (
+      x.isSinglePartRequest ||
+      (optional_allowEsModule && x.isOptionalPartRequest && x.hasImplementation)
+    ) && x.getRequestWithImplementation(),
+    createLoader: partsResourceInfo => ({
+      loader: require.resolve('../loaders/part-loader'),
+      options: { partsResourceInfo, all_onlyDefaultWhenEsModule, optional_allowEsModule },
+    })
   })
 }
 

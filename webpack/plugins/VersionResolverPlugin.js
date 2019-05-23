@@ -1,3 +1,4 @@
+const { resolveWithoutFile } = require('./utils')
 const importFresh = require('import-fresh')
 const path = require('path')
 
@@ -11,42 +12,21 @@ function VersionResolverPlugin({ productName }) {
       compiler.hooks.compilation.tap(name, compilation)
 
       function compilation(compilation, { normalModuleFactory }) {
-        addConfigResolver(normalModuleFactory, compiler.context, productName)
+        addVersionsResolver(normalModuleFactory, compiler.context, productName)
       }
     }
   }
 }
 
-function addConfigResolver(normalModuleFactory, context, productName) {
-
-  normalModuleFactory.hooks.resolver.tap(
+function addVersionsResolver(normalModuleFactory, context, productName) {
+  resolveWithoutFile({
     name,
-    original => (data, callback) => {
-      const { request } = data
-
-      if (request === `${productName}:versions`) {
-        const object = getVersions(context, productName)
-        const result = {
-          request, userRequest: request, rawRequest: request, resource: request,
-          loaders: [{
-            loader: require.resolve('../loaders/object-loader'),
-            options: { object },
-          }],
-          type: 'javascript/auto',
-          parser: normalModuleFactory.getParser('javascript/auto'),
-          generator: normalModuleFactory.getGenerator('javascript/auto'),
-          resolveOptions: { isObjectLoaderRequest: true },
-          settings: {},
-          context: data.context,
-        }
-        callback(null, result)
-      } else  original(data, callback)
-    }
-  )
-  normalModuleFactory.hooks.module.tap(name, (module, result) => {
-    // context of a normal module is extracted from the request, so we need to adjust it
-    if (result.resolveOptions && result.resolveOptions.isObjectLoaderRequest)
-      module.context = result.context
+    normalModuleFactory,
+    getRequestData: request => request === `${productName}:versions`,
+    createLoader: _ => ({
+      loader: require.resolve('../loaders/object-loader'),
+      options: { object: getVersions(context, productName) },
+    }),
   })
 }
 

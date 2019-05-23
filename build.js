@@ -6,14 +6,15 @@ const webpack = require('webpack')
 
 const isProduction = process.env.NODE_ENV === 'production'
 if (!isProduction) throw new Error('non-production mode currently not supported by build')
+const configEnv = process.env.CONFIG_ENV || 'development'
 
-const { outputPath, publicPath, compatibility, context, baseConfigName, productName, loadParts } =
-  createConfig({ context: process.cwd() })
+const { outputPath, publicPath, compatibility, context, config, productName, loadParts } =
+  createConfig({ defaultContext: process.cwd(), configEnv })
 
 const multiConfig = createMultiConfig({
   isProduction,
   context,
-  baseConfigName,
+  config,
   productName,
   publicPath,
   outputPath,

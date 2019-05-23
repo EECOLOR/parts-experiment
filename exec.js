@@ -4,15 +4,18 @@ const path = require('path')
 const webpack = require('webpack')
 
 const isProduction = process.env.NODE_ENV === 'production'
+const configEnv = process.env.CONFIG_ENV || 'development'
+
 const [,, script] = process.argv
 
-const { compatibility, context, baseConfigName, productName, loadParts } = createConfig({ context: process.cwd() })
+const { compatibility, context, config, productName, loadParts } =
+  createConfig({ defaultContext: process.cwd(), configEnv })
 const outputPath = path.resolve(__dirname, '.tmp')
 
-const config = createNodeConfig({
+const nodeConfig = createNodeConfig({
   isProduction,
   context,
-  baseConfigName,
+  config,
   productName,
   outputPath,
   compatibility,
@@ -22,7 +25,7 @@ const config = createNodeConfig({
 })
 
 webpack(
-  config,
+  nodeConfig,
   (e, stats) => {
     if (e) {
       console.error(e.stack || e)

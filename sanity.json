@@ -11,6 +11,19 @@
     "all_onlyDefaultWhenEsModule": true
   },
 
+  "env": {
+    "development": {
+      "project": {
+        "test": "value"
+      },
+      "parts": [
+        {
+          "name": "part:fake"
+        }
+      ]
+    }
+  },
+
   "parts": [
     {
       "name": "part:one",

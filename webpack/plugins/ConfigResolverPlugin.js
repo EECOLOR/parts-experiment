@@ -1,37 +1,38 @@
+const { resolveWithoutFile } = require('./utils')
 const path = require('path')
 
 const name = 'ConfigResolverPlugin'
 
 module.exports = ConfigResolverPlugin
 
-function ConfigResolverPlugin({ baseConfigName }) {
+function ConfigResolverPlugin({ config, productName }) {
   return {
     apply: compiler => {
       compiler.hooks.compilation.tap(name, compilation)
 
       function compilation(compilation, { normalModuleFactory }) {
-        addConfigResolver(normalModuleFactory, compiler.context, baseConfigName)
+        addConfigResolver(normalModuleFactory, compiler.context, config, productName)
       }
     }
   }
 }
 
-function addConfigResolver(normalModuleFactory, context, baseConfigName) {
+function addConfigResolver(normalModuleFactory, context, config, productName) {
   const configRegExp = /^config:(.+)$/
   const configContext = path.join(context, 'config')
 
-  normalModuleFactory.hooks.resolver.tap(
+  resolveWithoutFile({
     name,
-    original => (data, callback) => {
-      const { request } = data
-
-      const configMatch = request.match(configRegExp)
-      if (configMatch) {
-        const [, configRequest] = configMatch
-        const configBasePath = configRequest === baseConfigName ? context : configContext
-        // TODO: @sanity/util - reduceConfig (probably using a loader)
-        original({ ...data, request: path.join(configBasePath, `${configRequest}.json`) }, callback)
-      } else  original(data, callback)
-    }
-  )
+    normalModuleFactory,
+    getRequestData: request => request.match(configRegExp),
+    getNewRequest: x => {
+      const [, configRequest] = x
+      return configRequest !== productName &&
+        path.join(configContext, `${configRequest}.json`)
+    },
+    createLoader: _ => ({
+      loader: require.resolve('../loaders/object-loader'),
+      options: { object: config },
+    })
+  })
 }

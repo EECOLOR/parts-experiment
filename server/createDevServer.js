@@ -13,7 +13,7 @@ module.exports = { createDevServer }
 function createDevServer({
   isProduction,
   context,
-  baseConfigName,
+  config,
   productName,
   publicPath,
   outputPath,
@@ -26,7 +26,7 @@ function createDevServer({
   const multiConfig = createMultiConfig({
     isProduction,
     context,
-    baseConfigName,
+    config,
     productName,
     publicPath,
     outputPath,

@@ -12,7 +12,7 @@ module.exports = {
 function createNodeConfig({
   isProduction,
   context,
-  baseConfigName,
+  config,
   productName,
   outputPath,
   compatibility,
@@ -39,7 +39,7 @@ function createNodeConfig({
     module: { rules: [{ test: /\.js$/, exclude: /node_modules/, use: js.loaders }] },
     plugins: [
       PartsPlugin({ loadParts, generateTypeDefinitionFiles, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
-      ConfigResolverPlugin({ baseConfigName }),
+      ConfigResolverPlugin({ config, productName }),
       VersionResolverPlugin({ productName }),
       new DefinePlugin({ PARTS_COMPATIBILITY: JSON.stringify(compatibility) }),
     ]
