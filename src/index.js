@@ -35,6 +35,9 @@ console.log(sanityVersions)
 console.log(sanityDebug)
 
 console.log('-- Running tests from index.js --')
+console.log('Compatibility:')
+console.log(`optional - allow es module: ${PARTS_COMPATIBILITY.optional_allowEsModule}`)
+console.log(`all - only default when es module: ${PARTS_COMPATIBILITY.all_onlyDefaultWhenEsModule}`)
 const results = [
   compare({ test: 'one-default' }, a),
   compare('one-test', test),
@@ -46,7 +49,7 @@ const results = [
       compare('one-default', d && d.test, d1 && d1.test),
     ]
     : [
-      compare({ default: { test: 'one-default' } }, d, d1),
+      compare({ default: { test: 'one-default' }, test: 'one-test' }, d, d1),
       compare('one-test', d && d.test, d1 && d1.test),
     ]
   ),

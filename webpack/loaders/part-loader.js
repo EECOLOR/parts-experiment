@@ -18,7 +18,7 @@ module.exports = {
       : optional_allowEsModule && isOptionalPartRequest && implementation
       ? throwError('The matrix has changed, this is not a situation that should be possible. Somehow an optional part with implementation was passed to the loader.')
       : isOptionalPartRequest && implementation
-      ? `module.exports = { ...require('${r(implementation)}') }; // ${resource}` // *
+      ? `module.exports = { ...require('${r(implementation.path)}') }; // ${resource}` // *
       : isOptionalPartRequest
       ? `module.exports = undefined; // ${resource}`
       : all_onlyDefaultWhenEsModule && isAllPartsRequest
