@@ -22,10 +22,10 @@ module.exports = {
       : isOptionalPartRequest
       ? `module.exports = undefined; // ${resource}`
       : all_onlyDefaultWhenEsModule && isAllPartsRequest
-      ? `module.exports = [${implementations.map(x => `require('${r(x)}')`).join(', ')}]
+      ? `module.exports = [${implementations.map(x => `require('${r(x.path)}')`).join(', ')}]
           .map(x => x && x.__esModule ? x['default'] : x) // ${resource}`
       : isAllPartsRequest
-      ? `module.exports = [${implementations.map(x => `require('${r(x)}')`).join(', ')}] // ${resource}`
+      ? `module.exports = [${implementations.map(x => `require('${r(x.path)}')`).join(', ')}] // ${resource}`
       : throwError('The matrix has changed, this is not a situation that should be possible. Somehow a `partsRequestType` object was created with no property set to `true`.')
 
     return result

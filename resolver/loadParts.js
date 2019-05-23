@@ -42,9 +42,10 @@ async function collectParts({ resolvedConfig, pluginPackagePrefix, isModule = fa
 
   const partsFromConfig = parts.map(part => {
     if (!part || typeof part !== 'object') throwError(`Expected each part to be an object in ${resolvedConfig}`)
-    const { name, implements, path, type } = part
+    const { name, description, implements, path, type } = part
     return {
       name: name && getPartname(name),
+      description,
       implements: implements && getPartname(implements),
       type,
       path: path && (
@@ -70,13 +71,16 @@ async function collectParts({ resolvedConfig, pluginPackagePrefix, isModule = fa
 
 function resolveParts(parts) {
   return parts.reduce(
-    (result, { name, implements, type, path: implementation, context, source }) => {
+    (result, { name, implements, type, path: implementation, context, source, description }) => {
       if (name && result[name]) throwError(`Illegal definition of '${name}' in ${c(source)}, a part with this name was already defined in ${c(result[name].source)}`)
       if (implements && type) throwError(`Illegal property 'type' in implementation of '${implements}' in ${c(source)}`)
       if (implements && !implementation) throwError(`Missing property 'implementation' in implementation of '${implements}' in ${c(source)}'`)
       if (implements && !result[implements]) throwError(`No part with name '${implements}' found for the implementation defined in ${c(source)}`)
 
-      const resolvedImplementation = implementation && resolveInContext(implementation, context)
+      const resolvedImplementation = implementation && {
+        path: resolveInContext(implementation, context),
+        source,
+      }
 
       if (name)
         result[name] = {
@@ -84,6 +88,7 @@ function resolveParts(parts) {
           type: type && resolveInContext(type, context),
           implementations: [resolvedImplementation].filter(Boolean),
           source,
+          description,
         }
 
       if (implements)

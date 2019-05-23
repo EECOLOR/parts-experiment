@@ -2,6 +2,7 @@ const { DefinePlugin } = require('webpack')
 const createJsConfig = require('./js')
 const nodeExternals = require('webpack-node-externals')
 const ConfigResolverPlugin = require('../plugins/ConfigResolverPlugin')
+const DebugResolverPlugin = require('../plugins/DebugResolverPlugin')
 const PartsPlugin = require('../plugins/PartsPlugin')
 const VersionResolverPlugin = require('../plugins/VersionResolverPlugin')
 
@@ -41,6 +42,7 @@ function createNodeConfig({
       PartsPlugin({ loadParts, generateTypeDefinitionFiles, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
       ConfigResolverPlugin({ config, productName }),
       VersionResolverPlugin({ productName }),
+      DebugResolverPlugin({ productName }),
       new DefinePlugin({ PARTS_COMPATIBILITY: JSON.stringify(compatibility) }),
     ]
   }

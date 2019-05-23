@@ -27,7 +27,8 @@
   "parts": [
     {
       "name": "part:one",
-      "type": "./src/one.d.ts"
+      "type": "./src/one.d.ts",
+      "description": "The first"
     },
     {
       "implements": "part:one",

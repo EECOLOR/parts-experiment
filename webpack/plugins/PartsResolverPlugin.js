@@ -23,8 +23,6 @@ function PartsResolverPlugin({
 }
 
 function addPartsResolver(normalModuleFactory, parts, optional_allowEsModule, all_onlyDefaultWhenEsModule) {
-  // TODO: sanity:debug - should return the parts in a backwards compatible fashion (see /sanity/packages/@sanity/storybook/src/addons/sanity/Sanity.js)
-
   resolveWithoutFile({
     name,
     normalModuleFactory,
@@ -84,7 +82,7 @@ function getPartsResourceInfo(request, parts) {
       getRequestWithImplementation: () => {
         if (!hasImplementation) throwError(`No implementations available for part '${name}'`)
         const [implementation] = part.implementations.slice(-1)
-        return request.replace(resource, implementation)
+        return request.replace(resource, implementation.path)
       }
     }
 }

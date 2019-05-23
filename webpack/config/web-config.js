@@ -2,6 +2,7 @@ const { HotModuleReplacementPlugin, DefinePlugin } = require('webpack')
 const createCssConfig = require('./css')
 const createJsConfig = require('./js')
 const ConfigResolverPlugin = require('../plugins/ConfigResolverPlugin')
+const DebugResolverPlugin = require('../plugins/DebugResolverPlugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const PartsPlugin = require('../plugins/PartsPlugin')
 const VersionResolverPlugin = require('../plugins/VersionResolverPlugin')
@@ -52,6 +53,7 @@ function createModuleAndPlugins({ loadParts, compatibility, isProduction, config
       PartsPlugin({ loadParts, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
       ConfigResolverPlugin({ config, productName }),
       VersionResolverPlugin({ productName }),
+      DebugResolverPlugin({ productName }),
       ...css.plugins,
       new ManifestPlugin(),
       !isProduction && new HotModuleReplacementPlugin(),
