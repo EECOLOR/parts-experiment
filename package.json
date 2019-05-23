@@ -14,6 +14,7 @@
     "@babel/core": "^7.4.4",
     "@babel/preset-env": "^7.4.4",
     "@babel/preset-react": "^7.0.0",
+    "@sanity/util": "^0.140.3",
     "@storybook/react": "^5.0.11",
     "@types/node": "^11.13.8",
     "@types/react": "^16.8.14",

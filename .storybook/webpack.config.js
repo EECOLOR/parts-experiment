@@ -8,6 +8,7 @@ module.exports = function adjustWebpackConfig({ config }) {
     compatibility,
     loadParts: loadSanityParts,
     baseConfigName: 'sanity',
+    productName: 'sanity',
   })
 
   return {

@@ -12,6 +12,7 @@ function createConfig({ context }) {
   return {
     context,
     baseConfigName: productName,
+    productName,
     outputPath: path.resolve(context, 'dist'),
     publicPath: sanityJson.project.basePath,
     compatibility: {

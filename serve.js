@@ -4,13 +4,14 @@ const { createDevServer } = require('./server')
 const isProduction = process.env.NODE_ENV === 'production'
 if (isProduction) throw new Error('production mode currently not supported by serve')
 
-const { outputPath, publicPath, compatibility, context, baseConfigName, loadParts } =
+const { outputPath, publicPath, compatibility, context, baseConfigName, productName, loadParts } =
   createConfig({ context: process.cwd() })
 
 const app = createDevServer({
   isProduction,
   context,
   baseConfigName,
+  productName,
   outputPath,
   publicPath,
   compatibility,

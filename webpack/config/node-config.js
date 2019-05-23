@@ -3,6 +3,7 @@ const createJsConfig = require('./js')
 const nodeExternals = require('webpack-node-externals')
 const ConfigResolverPlugin = require('../plugins/ConfigResolverPlugin')
 const PartsPlugin = require('../plugins/PartsPlugin')
+const VersionResolverPlugin = require('../plugins/VersionResolverPlugin')
 
 module.exports = {
   createNodeConfig
@@ -12,6 +13,7 @@ function createNodeConfig({
   isProduction,
   context,
   baseConfigName,
+  productName,
   outputPath,
   compatibility,
   entry,
@@ -38,7 +40,7 @@ function createNodeConfig({
     plugins: [
       PartsPlugin({ loadParts, generateTypeDefinitionFiles, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
       ConfigResolverPlugin({ baseConfigName }),
-      // TODO: VersionResolverPlugin - @sanity/util - getSanityVersions,
+      VersionResolverPlugin({ productName }),
       new DefinePlugin({ PARTS_COMPATIBILITY: JSON.stringify(compatibility) }),
     ]
   }

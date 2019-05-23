@@ -4,6 +4,7 @@ const createJsConfig = require('./js')
 const ConfigResolverPlugin = require('../plugins/ConfigResolverPlugin')
 const ManifestPlugin = require('webpack-manifest-plugin')
 const PartsPlugin = require('../plugins/PartsPlugin')
+const VersionResolverPlugin = require('../plugins/VersionResolverPlugin')
 
 module.exports = {
   createWebConfig,
@@ -14,6 +15,7 @@ function createWebConfig({
   isProduction,
   context,
   baseConfigName,
+  productName,
   publicPath,
   outputPath,
   compatibility,
@@ -30,11 +32,11 @@ function createWebConfig({
       filename: '[name].[hash].js',
       path: outputPath
     },
-    ...createModuleAndPlugins({ loadParts, compatibility, isProduction, baseConfigName }),
+    ...createModuleAndPlugins({ loadParts, compatibility, isProduction, baseConfigName, productName }),
   }
 }
 
-function createModuleAndPlugins({ loadParts, compatibility, isProduction, baseConfigName }) {
+function createModuleAndPlugins({ loadParts, compatibility, isProduction, baseConfigName, productName }) {
 
   const { optional_allowEsModule, all_onlyDefaultWhenEsModule } = compatibility
   const css = createCssConfig(isProduction)
@@ -49,7 +51,7 @@ function createModuleAndPlugins({ loadParts, compatibility, isProduction, baseCo
     plugins: [
       PartsPlugin({ loadParts, optional_allowEsModule, all_onlyDefaultWhenEsModule }),
       ConfigResolverPlugin({ baseConfigName }),
-      // TODO: VersionResolverPlugin - @sanity/util - getSanityVersions,
+      VersionResolverPlugin({ productName }),
       ...css.plugins,
       new ManifestPlugin(),
       !isProduction && new HotModuleReplacementPlugin(),

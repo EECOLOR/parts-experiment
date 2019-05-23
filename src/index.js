@@ -26,9 +26,11 @@ import App from './App'
 
 import sanityConfig from 'config:sanity'
 import testConfig from 'config:test'
+import sanityVersions from 'sanity:versions'
 
 console.log(sanityConfig)
 console.log(testConfig)
+console.log(sanityVersions)
 
 console.log('-- Running tests from index.js --')
 const results = [
